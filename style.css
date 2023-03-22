@@ -1,0 +1,90 @@
+header, html {
+	background-color: #fff;
+	color: #fff;
+	text-align: center;
+/*	overflow: hidden;*/
+}
+
+
+main, head {
+	background-color: #fff;
+	color: #333;
+	
+	text-align: center;
+	font-family: 'EB Garamond', serif;
+	font-size: 30px;
+}
+
+
+footer {
+	margin-top: -70px;
+	background-color: #fff;
+	color: #333;
+	padding: 0px;
+	text-align: center;
+}
+
+header img {
+	max-width: 100%;
+	height: auto;
+	margin: 0 auto;
+	display: block;
+}
+
+main img {
+	max-width: 8%;
+	height: auto;
+	margin: 0 auto;
+	display: block;
+}
+.zoom{
+	 transition: transform .2s; /* Animation */
+}
+.zoom:hover {
+	transform: scale(1.8);
+}
+
+
+.card-container {
+  perspective: 1000px;
+}
+
+.card {
+/*  position: absolute;*/
+/*  margin: auto;*/
+  transform-style: preserve-3d;
+  transition: transform 0.8s ease;
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: center;
+  align-items: center;
+/*  height: 100%;*/
+}
+
+
+.card-front {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  transform: rotateY(0deg);
+}
+
+
+.card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; 
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+
+
+}
+
+.card.flipped {
+  transform: rotateY(180deg);
+}

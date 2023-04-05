@@ -1,37 +1,169 @@
-<!DOCTYPE html>
+<html>
 <head>
-	<title>Royal Rabbit Studios</title>
-	<link rel="stylesheet" href="style.css">
+<!-- <link rel="stylesheet" href="https://latex.now.sh/style.min.css" /> -->
+<link rel="stylesheet" href="fonts.css" />
+
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sugina-dev/latin-modern-web@1.0.1/style/latinmodern-mono.css" /> -->
 </head>
-<body>
-	<header>
-	<div class="card">
-  		<div class="card-front">
-			<img src="rrslogo1.10.23.svg" alt="Pottery Store Logo" style="max-width: 25%;">
-		</div>
-		<div class="card-back">
-			<img src="rrslogo2.26.23B.svg" alt="" style="max-width: 28%;">
-	</div>
-	</header>
-	<main>
-		<h1>Work in Progress</h1>
-		<div class = "zoom">
-			<a href = "https://www.etsy.com/market/royal_rabbit"><img src="Etsy-logo.png"></img></a>
-	    </div>
-		<p>For now, check out our Etsy page!</p>
 
-	</main>
-<!-- 	<footer>
-		<p>&copy; 2023 Pottery Store</p>
-	</footer> -->
-</body>
+<body id="top" style="background-color: #16161d; color: #fffaf0;font-family: Latin Modern,Georgia,Cambria,Times New Roman,Times,serif; overflow: hidden">
 
+
+  <header>
+   
+
+
+  <div class="card">
+  <div class="card-front">
+  <div class="card-content">
+    <br>
+    <br>
+
+     <h1 style="font-size: 50; "><span class="author">Michael Garbus</h1> </span>
+     <h3 style = "margin-top: 10px;"><a href = "">Software</a> Developer</h3>
+     <h4  >Python | Java | R </h4>
+     <!-- <p style="margin-top:-15px;"> Github Symbol | Linkedin Symbol (top left?) </p> -->
+     <!-- <p style="margin-top:-15px;"> Github Symbol | Linkedin Symbol (top left?) </p> -->
+     <p style = "font-style: italic; margin-top:-0px;">Flip For More</p>
+  </div>
+</div>
+  <div class="card-back">
+    <h2> TODO: Make silouhette of pottery symbol  | Book (for substack/writing??) | Scans (???)</h2>
+    <!-- Content for back side of card -->
+  </div>
+</div>
+    	<!-- add bg color eigengrau, font color off-white -->
+      <!-- add box around this, a la business card -- click to flip? every 10th flip is a 360 flip   -->
+    <p style="font-size: 23px">
+      Hey, I'm Michael Garbus, a senior at <a href = "https://uiuc.edu">The University of Illinois</a> majoring in Statistics and minoring in Computer Science. My resume can be found <a href = "">here</a>, see my projects <a href = "">here</a>, and you can contact me <a href = "">here</a>. </p>
+      
+  	  <p style="font-size: 23px"> My current interests include:</p>
+      <li style="font-size: 18px"> <a href = "">Pottery</a></li>
+      <li style="font-size: 18px"> <a href = "">Semantic Segmentation</a> and Neural Network Architectures</li>  
+      <li style="font-size: 18px"> Short Story Writing</li>
+      <div class="logos-container">
+      <p></p>
+      <!-- <p>Insert Github Symbol, Linkedin Symbol, Email Symbol</p> -->
+      <a href="https://github.com/mgarbvs">
+        <img src="logo.png" alt="GitHub Logo" width="50" class = "logo" style="margin-right:20px;">
+      </a>
+
+      <a href="https://www.linkedin.com/in/michael-g-72023a173/">
+        <img src="linke.png" alt="GitHub Logo" width="45" class = "logo">
+      </a>
+      </div>
+
+<!-- 
+       My current technical interests include:
+      <li style="font-size: 18px"> <a href = "">Pottery</a></li>
+      <li style="font-size: 18px"> <a href = "">Semantic Segmentation</a></li>  
+      <li style="font-size: 18px"> Industrial Design</li> -->
+      <!-- on right side -->
+ <!--      My current hobbies include:
+      <li style="font-size: 18px"> <a href = "">Pottery</a></li>
+      <li style="font-size: 18px"> <a href = "">Semantic Segmentation</a></li>  
+      <li style="font-size: 18px"> Industrial Design</li>
+ -->
+
+      <!-- <li>Auction Strategy</li>	 -->
+    </p>
+
+   <!--  <div class ="flex-container"><p>
+    Pottery:
+    <img src="C:\Users\micha\Documents\Portfolio\minimalist-portfolio\photography\images\Pottery Pictures-20211212T014157Z-001\Pottery Pictures\IMG_9041.jpg" ></img>  
+    <img src="C:\Users\micha\Documents\Portfolio\minimalist-portfolio\photography\images\Pottery Pictures-20211212T014157Z-001\Pottery Pictures\IMG_9041.jpg" ></img>   -->
+
+    </p>
+  </div>
+  </header>
+
+
+
+
+ </body>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap');	
-background-color: #333;
-color: #fff;
-padding: 20px;
-text-align: center;
+
+.card-container {
+  perspective: 1000px;
+}
+
+.card {
+/*  position: absolute;*/
+/*  margin: auto;*/
+  margin-top: 0px;
+  height: 300px;
+  width: 600px;
+  transform-style: preserve-3d;
+  transition: transform 0.8s ease;
+  color:#303030;
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: center;
+  align-items: center;
+/*  height: 100%;*/
+}
+
+
+.card-front {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  transform: rotateY(0deg);
+  background-image: url("white_leather.png");
+/*  text-shadow: 0 -4px 3px rgba(255, 255, 255, 0.3), 0 3px 4px rgba(0, 0, 0, 0.2); emboss */
+  text-shadow: 0 2px 3px rgba(255, 255, 255, 0.3), 0 -1px 2px rgba(0, 0, 0, 0.2);
+/*  color: #d7dee1;*/
+/*  -webkit-background-clip: text;*/
+/*     -moz-background-clip: text;*/
+/*          background-clip: text;*/
+}
+
+.card-content {
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; 
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+  background-image: url("white_leather.png");
+  text-shadow: 0 2px 3px rgba(255, 255, 255, 0.3), 0 -1px 2px rgba(0, 0, 0, 0.2);
+
+
+}
+
+.card.flipped {
+  transform: rotateY(180deg);
+}
+a:hover{
+  color: #1C6E8C;
+}
+
+.logos-container {
+  display: flex;
+  justify-content: center; /* to center the logos horizontally */
+  align-items: center; /* to center the logos vertically */
+  space-i
+}
+.logos-container a {
+  margin: 0 10px; /* to add some space between the logos */
+}
+
+.logo:hover {
+  filter: brightness(0) saturate(100%) hue-rotate(180deg);
+}
+
 </style>
 
 <script>
@@ -42,3 +174,4 @@ card.addEventListener('click', function() {
   card.classList.toggle('flipped');
 });
 </script>
+</html>

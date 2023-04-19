@@ -1,17 +1,21 @@
 <html>
 <head>
+ <title>Michael Garbus</title>
 <!-- <link rel="stylesheet" href="https://latex.now.sh/style.min.css" /> -->
 <link rel="stylesheet" href="fonts.css" />
-
 <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sugina-dev/latin-modern-web@1.0.1/style/latinmodern-mono.css" /> -->
 </head>
+<!-- possible colors
+     light brown: #A59F98
+     darker light silver: 9e9e9e
+     light silver: 989EA5
 
-<body id="top" style="background-color: #16161d; color: #fffaf0;font-family: Latin Modern,Georgia,Cambria,Times New Roman,Times,serif; overflow: hidden">
+
+ -->
+<body id="top" style="background-color: #9e9e9e; color: #040007;font-family: Latin Modern,Georgia,Cambria,Times New Roman,Times,serif; overflow: hidden">
 
 
   <header>
-   
-
 
   <div class="card">
   <div class="card-front">
@@ -20,60 +24,38 @@
     <br>
 
      <h1 style="font-size: 50; "><span class="author">Michael Garbus</h1> </span>
-     <h3 style = "margin-top: 10px;"><a href = "">Software</a> Developer</h3>
+     <h3 style = "margin-top: 10px;"><a href = "https://www.linkedin.com/in/michael-g-72023a173/">Software Developer</a></h3>
      <h4  >Python | Java | R </h4>
-     <!-- <p style="margin-top:-15px;"> Github Symbol | Linkedin Symbol (top left?) </p> -->
-     <!-- <p style="margin-top:-15px;"> Github Symbol | Linkedin Symbol (top left?) </p> -->
      <p style = "font-style: italic; margin-top:-0px;">Flip For More</p>
   </div>
 </div>
   <div class="card-back">
-    <h2> TODO: Make silouhette of pottery symbol  | Book (for substack/writing??) | Scans (???)</h2>
+    <div class="card-content">
+     <h1 style="font-size: 50; margin-top: -10px;"><span class="author"> <a href = "projects.html">Projects </a>| <a href = "pottery.html">Pottery</a></span></h1> 
+   </div>
     <!-- Content for back side of card -->
   </div>
 </div>
     	<!-- add bg color eigengrau, font color off-white -->
       <!-- add box around this, a la business card -- click to flip? every 10th flip is a 360 flip   -->
-    <p style="font-size: 23px">
-      Hey, I'm Michael Garbus, a senior at <a href = "https://uiuc.edu">The University of Illinois</a> majoring in Statistics and minoring in Computer Science. My resume can be found <a href = "">here</a>, see my projects <a href = "">here</a>, and you can contact me <a href = "">here</a>. </p>
+    <p style="font-size: 24px">
+      Hey, I'm Michael Garbus, a senior at <a href = "https://uiuc.edu">The University of Illinois</a> majoring in Statistics and minoring in Computer Science. My resume can be found <a href = "/MichaelGarbusResume.pdf">here</a>, you can see my projects <a href = "">here</a>, and you can contact me <a href = "mailto:michael.garbus@gmail.com">here</a>. </p>
       
   	  <p style="font-size: 23px"> My current interests include:</p>
-      <li style="font-size: 18px"> <a href = "">Pottery</a></li>
-      <li style="font-size: 18px"> <a href = "">Semantic Segmentation</a> and Neural Network Architectures</li>  
-      <li style="font-size: 18px"> Short Story Writing</li>
+      <li style="font-size: 22px"> <a href = "/test.html">Pottery</a></li>
+      <li style="font-size: 22px"> <a href = "https://github.com/mgarbvs/430-07-torch-enjoyers">Semantic Segmentation</a> and Neural Networks</li>  
+      <li style="font-size: 22px"> Short Story Writing</li>
       <div class="logos-container">
       <p></p>
-      <!-- <p>Insert Github Symbol, Linkedin Symbol, Email Symbol</p> -->
+
       <a href="https://github.com/mgarbvs">
         <img src="logo.png" alt="GitHub Logo" width="50" class = "logo" style="margin-right:20px;">
       </a>
 
       <a href="https://www.linkedin.com/in/michael-g-72023a173/">
-        <img src="linke.png" alt="GitHub Logo" width="45" class = "logo">
+        <img src="linke.png" alt="Linkedin Logo" width="45" class = "logo">
       </a>
       </div>
-
-<!-- 
-       My current technical interests include:
-      <li style="font-size: 18px"> <a href = "">Pottery</a></li>
-      <li style="font-size: 18px"> <a href = "">Semantic Segmentation</a></li>  
-      <li style="font-size: 18px"> Industrial Design</li> -->
-      <!-- on right side -->
- <!--      My current hobbies include:
-      <li style="font-size: 18px"> <a href = "">Pottery</a></li>
-      <li style="font-size: 18px"> <a href = "">Semantic Segmentation</a></li>  
-      <li style="font-size: 18px"> Industrial Design</li>
- -->
-
-      <!-- <li>Auction Strategy</li>	 -->
-    </p>
-
-   <!--  <div class ="flex-container"><p>
-    Pottery:
-    <img src="C:\Users\micha\Documents\Portfolio\minimalist-portfolio\photography\images\Pottery Pictures-20211212T014157Z-001\Pottery Pictures\IMG_9041.jpg" ></img>  
-    <img src="C:\Users\micha\Documents\Portfolio\minimalist-portfolio\photography\images\Pottery Pictures-20211212T014157Z-001\Pottery Pictures\IMG_9041.jpg" ></img>   -->
-
-    </p>
   </div>
   </header>
 
@@ -146,8 +128,12 @@
 .card.flipped {
   transform: rotateY(180deg);
 }
+a,a:visited {
+    color: #a80000
+}
 a:hover{
-  color: #1C6E8C;
+  color: #000352;
+  outline-offset: 2px;
 }
 
 .logos-container {
@@ -161,17 +147,77 @@ a:hover{
 }
 
 .logo:hover {
-  filter: brightness(0) saturate(100%) hue-rotate(180deg);
+  filter: brightness(75) saturate(100%) hue-rotate(180deg);
+}
+
+.counter-text {
+  position: absolute;
+  top: 0;
+  right: 10;
+/*  background-color: #333;*/
+  color: #333;
+  font-size: 36px;
+  padding: 2px 5px;
+  display: none;
+  transition: transform 0.35s ease-in;
+
+}
+
+.card.flipped .counter-text {
+  transform: rotateY(180deg);
+}
+
+.counter-text.visible {
+  display: block;
 }
 
 </style>
 
 <script>
   
-  const card = document.querySelector('.card');
+const card = document.querySelector('.card');
+const backcard = document.querySelector('.card.flipped');
+const ding = new Audio('Ding.mp3');
+const pan = new Audio('pan.wav')
+// add more sound fx 
+let flipCount = 0;
+const counterText = document.createElement('div');
+counterText.classList.add('counter-text');
+counterText.textContent = flipCount;
+card.appendChild(counterText);
+
+card.querySelectorAll('.front, .back').forEach((face) => {
+  const counter = counterText.cloneNode(true);
+  face.appendChild(counter);
+});
+
+
 
 card.addEventListener('click', function() {
+  flipCount++;
+
+  if (flipCount % 15 === 0) {
+    ding.play();
+  }
+  if (flipCount % 17 === 0) {
+    pan.play();
+  }
   card.classList.toggle('flipped');
+  if (flipCount >= 3) {
+    counterText.classList.add('visible');
+    counterText.textContent = flipCount;
+    if (flipCount%15 == 0){
+    counterText.textContent = "FizzBuzz!";
+    } else if (flipCount%3 == 0 ){ // && flipCount > 15
+    counterText.textContent = "Fizz";
+    }
+    else if (flipCount%5 == 0){
+    counterText.textContent = "Buzz";
+    } 
+    counter.textContent = flipCount;
+  } 
 });
+
+
 </script>
 </html>

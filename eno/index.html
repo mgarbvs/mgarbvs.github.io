@@ -1,0 +1,180 @@
+<html>
+
+<title>Oblique Strategies</title>
+ <div><p style="color:white ;"><a href="http://michaelgarbus.com">
+      <img src ="backarrow.png" class="arrow">   
+
+ </a>
+</p></div>
+<body id="top" style="background-color: #000111; color: #040007;font-family: Latin Modern,Georgia,Cambria,Times New Roman,Times,serif; overflow: hidden">
+
+  <div class="card">
+  <div class="card-front">
+  <div class="card-content">
+     <p id = "randStr" style="  font-size:  2.4em;text-align: center;">
+       
+     </p>
+  </div>
+</div>
+</div>
+      <br><br>
+      <button id="randomButton" type="button" class = "rbut" style= "display: block; margin: 0 auto;"><i>New Strategy</i></button>
+
+
+              <br><br>
+  <!-- todo: revise inline -->
+  <p class ="explanation" style ="display:  flex ;
+  margin:   50px; 
+  color:white; 
+  text-align :center;
+  justify-content: center;">143* Worthwhile Dilemmas</p>
+        <div class="hide">Includes unique strategies across editions 1-4.</div>
+<p class ="explanation" style ="display:  block ;
+  margin: 20px; 
+  color:white; 
+  text-align :center;
+  justify-content: center;">
+  Original Cards by <a href = "https://www.brian-eno.net/">Brian Eno</a>, <a href = "http://www.peterschmidtweb.com/">Peter Schmidt</a>, & <a href = "http://www.rtqe.net/ObliqueStrategies/Edition4.html">The Nortons</a>.
+</p>
+
+
+ </body>
+<style>
+
+.body{
+  justify-content: center;
+  align-items: center;
+  float:right;
+}
+.card {
+  margin: auto;
+  margin-top: 100px;
+  height: 300px;
+  width: 550px;
+  display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: center;
+}
+
+.rbut {
+   display: block;
+  width: 12%;
+  border: none;
+  outline:  solid;
+  padding: 14px 28px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+   border-radius: 5px; 
+   font-family: Latin Modern,Georgia,Cambria,Times New Roman,Times;
+
+}
+
+.hide{
+  display:  none;
+}
+
+.explanation:hover + .hide {
+  display:  block ;
+  margin:   auto 0; 
+  color:white; 
+  text-align :center;
+  justify-content: center;"
+
+}
+
+.card-front {
+  position: relative;
+  border-radius: 25px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("white_leather.png");
+  text-shadow: 0 2px 3px rgba(255, 255, 255, 0.3), 0 -1px 2px rgba(0, 0, 0, 0.2);
+
+}
+
+.card-content {
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; 
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+  background-image: url("white_leather.png");
+  text-shadow: 0 2px 3px rgba(255, 255, 255, 0.3), 0 -1px 2px rgba(0, 0, 0, 0.2);
+
+
+}
+
+
+a,a:visited {
+    color: white ;
+}
+a:hover{
+  color: whitesmoke ;
+  outline-offset: 20px;
+  outline-color:  whitesmoke  ;
+}
+
+.arrow {
+
+  transition: transform .2s; /* Animation */
+  width: 75px;
+  height: 50px;
+  margin-top: 25px;
+  margin-left: 20px;
+}
+.arrow:hover {
+  transform: scale(1.5); 
+}
+
+
+.counter-text {
+  position: absolute;
+  top: 0;
+  right: 10;
+  color: #333;
+  font-size: 36px;
+  padding: 2px 5px;
+  display: none;
+  transition: transform 0.35s ease-in;
+
+}
+
+.counter-text.visible {
+  display: block;
+}
+
+</style>
+
+<script>
+
+var strats = ['', 'Do the words need changing?', 'Emphasise differences', 'Use fewer notes', 'Consider different fading systems', 'Tidy up', 'Consult other sources -promising -unpromising', 'Only a part, not the whole', 'Remove specifics and convert to ambiguities', 'Use an old idea', 'What are you really thinking about just now ? Incorporate', 'Look at the order in which you do things', 'Listen to the quiet voice', 'Children -speaking -singing', 'Be dirty', 'Disciplined self-indulgence', 'Go slowly all the way round the outside', 'What mistakes did you make last time?', 'Mute and continue', 'Be extravagant', 'Once the search is in progress, something will be found', 'Take away the elements in order of apparent non-importance', 'Make a blank valuable by putting it in an exquisite frame', "What wouldn't you do?", 'Accept advice', 'What is the reality of the situation?', 'Cluster analysis', 'Feed the recording back out of the medium', 'Simple subtraction', 'Humanise something free of error', 'Only one element of each kind', 'Shut the door and listen from outside', 'Infinitesimal gradations', 'Remember those quiet evenings',"Don't stress one thing more than another", 'Ask people to work against their better judgement', 'Use filters', 'Go to an extreme, move back to a more comfortable place', 'Twist the spine', 'Is there something missing?', 'Disconnect from desire', 'Look closely at the most embarrassing details and amplify them', 'Abandon normal instruments', 'Courage!', 'Just carry on', 'Distorting time', "Define an area as 'safe' and use it as an anchor", 'A line has two sides', "Don't break the silence", '(sic)', 'Spectrum analysis', 'Use an unacceptable colour', 'Put in earplugs', 'The most important thing is the thing most easily forgotten', 'Discover the recipes you are using and abandon them', 'Retrace your steps', 'Emphasise repetitions', 'From nothing to more than nothing', 'Feedback recordings into an acoustic situation', 'You can only make one dot at a time', 'Idiot glee (?)', 'Revaluation (a warm feeling)', 'Balance the consistency principle with the inconsistency principle', 'Bridges -build -burn', 'The inconsistency principle', 'Honor thy error as a hidden intention', 'Work at a different speed', 'Lost in useless territory', 'Cascades', 'Go outside. Shut the door.', 'Give way to your worst impulse', 'Always first steps', 'Overtly resist change', 'Question the heroic approach', 'The tape is now the music', 'It is quite possible (after all)', 'Do the washing up', 'Turn it upside down', 'Tape your mouth (given by Ritva Saarikko)', 'Look at a very small object, look at its centre', 'How would you have done it?', "Use 'unqualified' people", 'You are an engineer', 'Simply a matter of work', 'Breathe more deeply', 'Do nothing for as long as possible', "Don't be frightened of cliches", 'Emphasise the flaws', 'Make an exhaustive list of everything you might do and do the last thing on the list', 'Do we need holes?', 'Be less critical more often', 'Lowest common denominator check -single beat -single note -single riff', 'Is the tuning intonation correct?', 'Ask your body', 'Discard an axiom', '(Organic) machinery', 'Think of the radio', 'What would your closest friend do?', 'Get your neck massaged', 'Short circuit(example; a man eating peas with the idea that they will improve his virility shovels them straight into his lap)', 'Change instrument roles', 'Listen in total darkness, or in a very large room, very quietly', 'Imagine the piece as a set of disconnected events', 'What are the sections sections of? Imagine a caterpillar moving', 'State the problem in words as clearly as possible', 'Left channel, right channel, centre channel', 'Allow an easement (an easement is the abandonment of a structure)', "Don't be frightened to display your talents", 'Reverse', 'What are you really thinking about just now?', 'Mechanicalise something idiosyncratic', 'Repetition is a form of change', 'Convert a melodic element into a rhythmic element', 'Would anybody want it?', 'Faced with a choice, do both  (given by Dieter Rot)', 'In total darkness, or in a very large room, very quietly', 'Take a break', 'Give the game away', 'Cut a vital connection', 'Water', 'Do something boring', "Don't be afraid of things because they're easy to do", 'Towards the insignificant', 'Remove ambiguities and convert to specifics', 'Trust in the you of now', 'Decorate, decorate', 'Not building a wall but making a brick', 'Make a sudden, destructive unpredictable action; incorporate', 'Accretion', "You don't have to be ashamed of using your own ideas", 'Change nothing and continue with immaculate consistency', 'Ghost echoes', 'Fill every beat with something', 'A very small object -Its centre', 'Always give yourself credit for having more than personality (given by Arto Lindsay)', 'Assemble some of the elements in a group and treat the group', 'Is it finished?', 'Into the impossible', 'Imagine the music as a moving chain or caterpillar', 'Lowest common denominator', 'Intentions -nobility of -humility of -credibility of', 'Destroy -nothing -the most important thing', 'Are there sections? Consider transitions'];
+
+    var randomStringElement = document.getElementById("randStr");
+    var randomButton = document.getElementById("randomButton");
+
+    function getRandomString() {
+        var randomIndex = Math.floor(Math.random() * strats.length);
+        var randomString = strats[randomIndex];
+        randomStringElement.textContent = randomString;
+    }
+
+    getRandomString();
+    randomButton.addEventListener("click", getRandomString);
+
+</script>
+
+</html>

@@ -1,17 +1,10 @@
 <html>
 <head>
- <title>Michael Garbus</title>
-<!-- <link rel="stylesheet" href="https://latex.now.sh/style.min.css" /> -->
-<link rel="stylesheet" href="fonts.css" />
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sugina-dev/latin-modern-web@1.0.1/style/latinmodern-mono.css" /> -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Michael Garbus</title>
+  <link rel="stylesheet" href="fonts.css" />
 </head>
-<!-- possible colors
-     light brown: #A59F98
-     darker light silver: 9e9e9e
-     light silver: 989EA5
-
-
- -->
 <body id="top" style="background-color: #7C7C7C; color: #FFF;font-family: Latin Modern,Georgia,Cambria,Times New Roman,Times,serif; overflow: hidden">
 
 
@@ -23,7 +16,7 @@
     <br>
     <br>
 
-     <h1 style="font-size: 50; "><span class="author">Michael Garbus</h1> </span>
+     <h1 style="font-size: 50px;"><span class="author">Michael Garbus</span></h1>
      <h3 style = "margin-top: 10px;"><a href = "https://www.linkedin.com/in/michael-g-72023a173/">Software Developer</a></h3>
      <h4  >Python | Java | R </h4>
      <p style = "font-style: italic; margin-top:-0px;">Flip For More</p>
@@ -31,20 +24,20 @@
 </div>
   <div class="card-back">
     <div class="card-content">
-     <h1 style="font-size: 50; margin-top: -10px;"><span class="author"> <a href = "projects.html">Projects </a>| <a href = "pottery.html">Pottery</a></span></h1> 
+     <h1 style="font-size: 50px; margin-top: -10px;"><span class="author"> <a href = "projects.html">Projects </a>| <a href = "pottery.html">Pottery</a></span></h1>
    </div>
-    <!-- Content for back side of card -->
   </div>
 </div>
-    	<!-- add bg color eigengrau, font color off-white -->
-      <!-- add box around this, a la business card -- click to flip? every 10th flip is a 360 flip   -->
-    <p style="font-size: 24px">
-      Hey, I'm Michael Garbus, a senior at <a href = "https://uiuc.edu">The University of Illinois</a> majoring in Statistics and minoring in Computer Science. My resume can be found <a href = "/MichaelGarbusResume.pdf">here</a>, you can see my projects <a href = "">here</a>, and you can contact me <a href = "mailto:michael.garbus@gmail.com">here</a>. </p>
+        <p style="font-size: 24px">
+      I'm Michael Garbus, an engineer at Amazon Web Services working on <a href = "https://aws.amazon.com/s3/features/tables/"> S3 Tables </a>.  \newline
+      My resume can be found <a href="/MichaelGarbusResume.pdf">here</a>, and you can contact me <a href="mailto:michael.garbus@gmail.com">here</a>. </p>
       
   	  <p style="font-size: 23px"> My current interests include:</p>
-      <li style="font-size: 22px"> <a href = "/test.html">Pottery</a></li>
-      <li style="font-size: 22px"> <a href = "https://github.com/mgarbvs/430-07-torch-enjoyers">Semantic Segmentation</a> and Neural Networks</li>  
-      <li style="font-size: 22px"> Short Story Writing</li>
+      <li style="font-size: 22px"> Apache Iceberg</li>
+      <li style="font-size: 22px"> Distributed Systems</li>
+      <li style="font-size: 22px"> Pottery</li>
+      <!-- <li style="font-size: 22px"> <a href = "https://github.com/mgarbvs/430-07-torch-enjoyers">Semantic Segmentation</a> and Neural Networks</li>   -->
+      
       <div class="logos-container">
       <p></p>
 
@@ -65,29 +58,19 @@
  </body>
 <style>
 
-.card-container {
-  perspective: 1000px;
-}
-
 .card {
-/*  position: absolute;*/
-/*  margin: auto;*/
+  position: relative;
+  perspective: 1000px;
   margin-top: 0px;
   height: 300px;
   width: 600px;
   transform-style: preserve-3d;
   transition: transform 0.8s ease;
-  color:#303030;
-  display: flex;
-  flex-flow: column wrap;
-  justify-content: center;
-  align-items: center;
-/*  height: 100%;*/
+  color: #303030;
 }
 
-
 .card-front {
-  position: relative;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -95,12 +78,7 @@
   backface-visibility: hidden;
   transform: rotateY(0deg);
   background-image: url("white_leather.png");
-/*  text-shadow: 0 -4px 3px rgba(255, 255, 255, 0.3), 0 3px 4px rgba(0, 0, 0, 0.2); emboss */
   text-shadow: 0 2px 3px rgba(255, 255, 255, 0.3), 0 -1px 2px rgba(0, 0, 0, 0.2);
-/*  color: #d7dee1;*/
-/*  -webkit-background-clip: text;*/
-/*     -moz-background-clip: text;*/
-/*          background-clip: text;*/
 }
 
 .card-content {
@@ -140,8 +118,8 @@ a:hover{
   display: flex;
   justify-content: center; /* to center the logos horizontally */
   align-items: center; /* to center the logos vertically */
-  space-i
 }
+
 .logos-container a {
   margin: 0 10px; /* to add some space between the logos */
 }
@@ -153,14 +131,12 @@ a:hover{
 .counter-text {
   position: absolute;
   top: 0;
-  right: 10;
-/*  background-color: #333;*/
+  right: 10px;
   color: #333;
   font-size: 36px;
   padding: 2px 5px;
   display: none;
   transition: transform 0.35s ease-in;
-
 }
 
 .card.flipped .counter-text {
@@ -174,50 +150,34 @@ a:hover{
 </style>
 
 <script>
-  
 const card = document.querySelector('.card');
-const backcard = document.querySelector('.card.flipped');
 const ding = new Audio('Ding.mp3');
-const pan = new Audio('Pipe.mp3')
-// add more sound fx 
+const pan = new Audio('Pipe.mp3');
 let flipCount = 0;
+
 const counterText = document.createElement('div');
 counterText.classList.add('counter-text');
-counterText.textContent = flipCount;
 card.appendChild(counterText);
-
-card.querySelectorAll('.front, .back').forEach((face) => {
-  const counter = counterText.cloneNode(true);
-  face.appendChild(counter);
-});
-
-
 
 card.addEventListener('click', function() {
   flipCount++;
-
-  if (flipCount % 15 === 0) {
-    ding.play();
-  }
-  if (flipCount % 17 === 0) {
-    pan.play();
-  }
   card.classList.toggle('flipped');
+
+  if (flipCount % 15 === 0) ding.play();
+  if (flipCount % 17 === 0) pan.play();
+
   if (flipCount >= 3) {
     counterText.classList.add('visible');
-    counterText.textContent = flipCount;
-    if (flipCount%15 == 0){
-    counterText.textContent = "FizzBuzz!";
-    } else if (flipCount%3 == 0 ){ // && flipCount > 15
-    counterText.textContent = "Fizz";
+    if (flipCount % 15 === 0) {
+      counterText.textContent = "FizzBuzz!";
+    } else if (flipCount % 3 === 0) {
+      counterText.textContent = "Fizz";
+    } else if (flipCount % 5 === 0) {
+      counterText.textContent = "Buzz";
+    } else {
+      counterText.textContent = flipCount;
     }
-    else if (flipCount%5 == 0){
-    counterText.textContent = "Buzz";
-    } 
-    counter.textContent = flipCount;
-  } 
+  }
 });
-
-
 </script>
 </html>

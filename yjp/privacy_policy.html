@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — YJP</title>
+  <style>
+    :root {
+      --accent: #FF6600;
+      --text: #1a1a1a;
+      --muted: #555;
+      --border: #e0e0e0;
+      --bg: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    header { margin-bottom: 40px; border-bottom: 2px solid var(--accent); padding-bottom: 20px; }
+    header h1 { font-size: 1.8rem; color: var(--accent); }
+    header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+    h2 {
+      font-size: 1.15rem;
+      margin: 40px 0 12px;
+      color: var(--text);
+      border-left: 3px solid var(--accent);
+      padding-left: 10px;
+    }
+    p { margin-bottom: 14px; }
+    ul { margin: 8px 0 14px 20px; }
+    ul li { margin-bottom: 6px; }
+    strong { color: var(--text); }
+    .callout {
+      background: #fff8f3;
+      border: 1px solid #ffd5b3;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      font-size: 0.95rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px;
+      font-size: 0.9rem;
+    }
+    th {
+      text-align: left;
+      padding: 8px 12px;
+      background: #f5f5f5;
+      border: 1px solid var(--border);
+      font-weight: 600;
+    }
+    td {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #fafafa; }
+    .service-block { margin-bottom: 20px; }
+    .service-block strong { display: block; margin-bottom: 4px; }
+    footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Privacy Policy</h1>
+  <p>YJP — Yahoo Japan Auctions Viewer &nbsp;·&nbsp; Last updated: April 27, 2026</p>
+</header>
+
+<h2>Overview</h2>
+<div class="callout">
+  Everything the app stores stays on your device. No data is sent to any server operated by the developer. The app has no analytics, no advertising, and no user accounts.
+</div>
+<p>YJP ("the app") is a read-only browser for Yahoo Japan Auctions. This policy explains what data the app stores, where it stays, and what leaves your device.</p>
+
+<h2>Data Stored on Your Device</h2>
+<p>The following data is stored locally and never transmitted to the developer:</p>
+<table>
+  <thead>
+    <tr><th>Data</th><th>Where stored</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Search history (last 10 queries)</td><td>UserDefaults</td><td>Autocomplete suggestions</td></tr>
+    <tr><td>Watchlist items and price snapshots</td><td>SwiftData (on-device)</td><td>Price tracking and alerts</td></tr>
+    <tr><td>Bid alert thresholds</td><td>SwiftData (on-device)</td><td>Push notification triggers</td></tr>
+    <tr><td>Cached auction images</td><td>App container (on-device)</td><td>Faster browsing</td></tr>
+    <tr><td>App preferences (sort order, currency, etc.)</td><td>UserDefaults</td><td>Your chosen settings</td></tr>
+    <tr><td>Cached exchange rate</td><td>UserDefaults</td><td>Currency conversion</td></tr>
+  </tbody>
+</table>
+<p>You can clear cached images and search history at any time from <strong>Settings → Clear Cache</strong> and <strong>Settings → Clear History</strong>.</p>
+
+<h2>Network Requests</h2>
+<p>The app makes network requests to the following third-party services only:</p>
+
+<div class="service-block">
+  <strong>Yahoo Japan Auctions (<code>auctions.yahoo.co.jp</code> and related subdomains)</strong>
+  All auction listings, search results, images, and item details are fetched directly from Yahoo Japan's publicly accessible website — the same pages visible in a web browser. The app does not log in, does not submit bids, and does not modify any data on Yahoo's servers.
+</div>
+
+<div class="service-block">
+  <strong>Exchange rate API (<code>api.exchangerate-api.com</code>)</strong>
+  The app fetches the current USD/JPY exchange rate to display prices in your local currency. This is a one-way, unauthenticated request containing no personal information.
+</div>
+
+<div class="service-block">
+  <strong>Apple Translation (iOS 18+)</strong>
+  If you use the search translation feature, queries are processed using Apple's on-device or server-side translation, subject to <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple's privacy policy</a>. The app does not receive or store translation responses beyond the current session.
+</div>
+
+<h2>Data Not Collected</h2>
+<ul>
+  <li>No name, email address, or contact information</li>
+  <li>No device identifiers (IDFA, IDFV, or similar)</li>
+  <li>No location data</li>
+  <li>No crash reports or analytics</li>
+  <li>No advertising data</li>
+  <li>No purchase history or payment information</li>
+</ul>
+
+<h2>Push Notifications</h2>
+<p>If you enable notifications, the app schedules them locally on your device using iOS's notification framework. No notification content is transmitted through the developer's servers. Notification delivery is handled entirely by iOS.</p>
+
+<h2>Third-Party Proxy Bidding Services</h2>
+<p>The app provides links to third-party proxy bidding services (such as Buyee, Zenmarket, and FromJapan) as a convenience. Tapping those links opens the respective service in Safari. Any account creation, payment, or transaction you conduct with those services is solely between you and them. The developer has no access to your activity on those services and is not responsible for their privacy practices.</p>
+
+<h2>App Store and TestFlight</h2>
+<p>If you download the app from the App Store or TestFlight, Apple may collect certain data as described in <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple's privacy policy</a>. The developer does not receive individual user data from Apple beyond aggregate, anonymized App Store analytics (which you can opt out of in iOS Settings).</p>
+
+<h2>Children's Privacy</h2>
+<p>The app displays publicly available commercial auction listings and is rated 4+. It does not knowingly collect any information from children or anyone else.</p>
+
+<h2>Changes to This Policy</h2>
+<p>If this policy changes materially, the updated version will be posted at this URL with a new "Last updated" date. Continued use of the app after a change constitutes acceptance of the revised policy.</p>
+
+<h2>Contact</h2>
+<p>If you have questions about this privacy policy, contact: <a href="mailto:yjpviewerdev@gmail.com">yjpviewerdev@gmail.com</a></p>
+
+<footer>
+  <p>YJP is an independent app and is not affiliated with Yahoo Japan or Yahoo Auctions.</p>
+</footer>
+
+</body>
+</html>

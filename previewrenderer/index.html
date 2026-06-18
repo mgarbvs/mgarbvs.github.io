@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Ableton Preview Renderer — Gumroad Cover</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* Ableton palette:
+     bg          #1c1c1e  (cool near-black)
+     device      #282828
+     border      #383838
+     amber       #f5a000
+     blue hi     #4a9eff
+     text        #d4d4d4
+     muted text  #888
+  */
+
+  body {
+    min-height: 100vh;
+    background: #1c1c1e;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Layout ─────────────────────────────────────────── */
+  .canvas {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* subtle grid texture on background */
+  .canvas::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.014) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.014) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* ── Center: copy ───────────────────────────────────── */
+  .copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 32px 60px;
+    gap: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 4px;
+    padding: 7px 14px;
+    margin-bottom: 20px;
+  }
+
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f5a000;
+    flex-shrink: 0;
+  }
+
+  .badge-text {
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.005em;
+    color: rgba(212,212,212,0.8);
+  }
+
+  .product-name {
+    font-size: 64px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.0;
+    color: #d4d4d4;
+    margin-bottom: 20px;
+  }
+
+  .tagline {
+    font-size: 26px;
+    font-weight: 300;
+    color: #f5a000;
+    letter-spacing: -0.01em;
+    margin-bottom: 28px;
+    line-height: 1.3;
+  }
+
+  .feature-list {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0 auto;
+    align-items: flex-start;
+    list-style: none;
+    padding: 0;
+  }
+
+  .feature-tick {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    color: #f5a000;
+    opacity: 0.85;
+    display: block;
+  }
+
+  .feature {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 18px;
+    line-height: 1.2;
+    color: rgba(212,212,212,0.65);
+    font-weight: 400;
+    text-align: left;
+  }
+
+  /* ── Links ──────────────────────────────────────────── */
+  .links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    padding: 11px 20px;
+    border-radius: 4px;
+  }
+
+  .link-btn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .link-btn.github {
+    color: #d4d4d4;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  .link-btn.gumroad {
+    color: #1c1c1e;
+    background: #f5a000;
+    border: 1px solid #f5a000;
+  }
+
+  /* ── Right: device mock ─────────────────────────────── */
+  .device-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 56px 60px 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Ableton M4L device — matches BatchPreviewRenderer reference */
+  .m4l-device {
+    width: 408px;
+    background: #3a4048;
+    border-radius: 6px;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.5),
+      0 28px 72px rgba(0,0,0,0.65),
+      0 4px 16px rgba(0,0,0,0.5);
+    overflow: hidden;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    padding: 14px 16px 18px;
+  }
+
+  /* Title bar */
+  .m4l-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 2px 0 14px;
+  }
+
+  .m4l-title-circle {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid #f5a000;
+    flex-shrink: 0;
+  }
+
+  .m4l-title-name {
+    font-size: 14px;
+    color: #e8e8e8;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    flex: 1;
+  }
+
+  .m4l-title-icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #cfcfcf;
+  }
+
+  .m4l-title-icons svg {
+    width: 13px;
+    height: 13px;
+    opacity: 0.85;
+  }
+
+  /* Top action row — 3 big buttons */
+  .m4l-action-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .m4l-btn-big {
+    background: #2a2f37;
+    color: #ececec;
+    font-size: 13px;
+    font-weight: 500;
+    height: 38px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+  }
+
+  .m4l-btn-big.stop { flex: 0 0 78px; }
+
+  /* Mid row: drums dropdown + Set File */
+  .m4l-mid-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  /* White-fill dropdown (Ableton "umenu" style) */
+  .m4l-umenu {
+    height: 22px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    padding: 0 6px 0 10px;
+    font-size: 12px;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 90px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+  }
+
+  .m4l-umenu-arrow {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #1a1a1a;
+    margin-left: 8px;
+  }
+
+  /* Dark "Set" pill button */
+  .m4l-set-btn {
+    height: 22px;
+    background: #2a2f37;
+    border-radius: 2px;
+    padding: 0 14px;
+    font-size: 12px;
+    color: #ececec;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+  }
+
+  /* MIDI row */
+  .m4l-midi-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .m4l-midi-label {
+    font-size: 13px;
+    color: #e8e8e8;
+    font-weight: 500;
+  }
+
+  /* Pack & source rows */
+  .m4l-config-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+
+  .m4l-config-status {
+    font-size: 12px;
+    color: #c8c8c8;
+    font-style: normal;
+  }
+
+  .m4l-config-status.set { color: #f5a000; font-weight: 500; }
+
+  /* Divider line between left and right panels */
+  .panel-divider {
+    position: absolute;
+    left: calc(1280px - 480px);
+    top: 60px;
+    bottom: 60px;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.05) 30%, rgba(255,255,255,0.05) 70%, transparent);
+    z-index: 2;
+  }
+
+  /* Bottom strip */
+  .bottom-strip {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    padding: 0 80px;
+    gap: 0;
+    justify-content: space-between;
+    z-index: 3;
+  }
+
+  .bottom-left {
+    font-size: 11px;
+    color: rgba(212,212,212,0.2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .bottom-right {
+    font-size: 11px;
+    color: rgba(212,212,212,0.2);
+    letter-spacing: 0.04em;
+  }
+
+  .device-shots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    margin: 16px 0 24px;
+    width: 100%;
+  }
+
+  .device-shots img {
+    max-width: 340px;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+    display: block;
+  }
+
+  #tweaks {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 9999;
+    width: 240px;
+    background: rgba(28,28,30,0.92);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 14px 14px 12px;
+    color: #d4d4d4;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    display: none;
+  }
+  #tweaks.on { display: block; }
+  #tweaks header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  #tweaks header b { font-size: 12px; font-weight: 600; letter-spacing: 0.02em; }
+  #tweaks header button {
+    background: transparent; border: 0; color: rgba(212,212,212,0.5);
+    font-size: 16px; line-height: 1; cursor: pointer; padding: 0 4px;
+  }
+  #tweaks .row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 6px 0;
+  }
+  #tweaks .row label { color: rgba(212,212,212,0.75); }
+  #tweaks input[type=checkbox] { accent-color: #f5a000; }
+  #tweaks select {
+    background: #1a1a1c; color: #d4d4d4; border: 1px solid #383838;
+    border-radius: 3px; padding: 3px 6px; font-size: 11px; font-family: inherit;
+  }
+  /* Divider hidden state */
+  body[data-divider="off"] .panel-divider { display: none; }
+  body[data-grid="off"] .canvas::before { display: none; }
+  body[data-bottom="off"] .bottom-strip { display: none; }
+</style>
+</head>
+<body>
+<div class="canvas">
+
+  <!-- Left: copy -->
+  <div class="copy">
+    <div class="badge">
+      <div class="badge-dot"></div>
+      <span class="badge-text">Works on Mac and Windows!</span>
+    </div>
+
+    <div class="product-name">Ableton<br>Preview Renderer</div>
+    <div class="device-shots">
+      <img src="assets/PreviewRenderer.jpg" alt="PreviewRenderer device">
+      <img src="assets/BatchPreviewRenderer.jpg" alt="BatchPreviewRenderer device">
+    </div>
+    <div class="tagline">Finally, previews for your presets.</div>
+
+    <ul class="feature-list">
+      <li class="feature">
+        <svg class="feature-tick" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8.5l3.5 3.5 6.5-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Renders previews of your presets right inside Ableton Live
+      </li>
+      <li class="feature">
+        <svg class="feature-tick" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8.5l3.5 3.5 6.5-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Per-preset or batch — whole folders at once!
+      </li>
+      <li class="feature">
+        <svg class="feature-tick" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8.5l3.5 3.5 6.5-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Lead, chord, pad, drums — auto-detected
+      </li>
+    </ul>
+
+    <div class="links">
+      <a class="link-btn github" href="https://github.com/mgarbvs/AbletonPreviewRenderer">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        View on GitHub
+      </a>
+      <a class="link-btn gumroad" href="https://mginstruments.gumroad.com/l/AbletonPreviewRenderer">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M8 1C4.13 1 1 4.13 1 8s3.13 7 7 7 7-3.13 7-7-3.13-7-7-7zm.6 10.1c-2.07 0-3.36-1.5-3.36-3.62 0-2.18 1.42-3.76 3.62-3.76 1.93 0 3.07 1.13 3.18 2.5h-1.9c-.07-.55-.5-1-1.27-1-1.02 0-1.7.86-1.7 2.18 0 1.34.68 2.18 1.74 2.18.8 0 1.31-.43 1.46-1.18H8.6V7.32h3.2v3.62h-1.45l-.13-.86c-.36.64-.96 1.02-1.62 1.02z"/>
+        </svg>
+        Get it on Gumroad
+      </a>
+    </div>
+  </div>
+
+  <!-- Vertical divider -->
+  <div class="panel-divider"></div>
+
+</div>
+
+<!-- Tweaks panel -->
+<div id="tweaks">
+  <header>
+    <b>Tweaks</b>
+    <button id="twk-close" title="Close">×</button>
+  </header>
+  <div class="row">
+    <label for="twk-divider">Center divider</label>
+    <input type="checkbox" id="twk-divider">
+  </div>
+  <div class="row">
+    <label for="twk-grid">Background grid</label>
+    <input type="checkbox" id="twk-grid" checked>
+  </div>
+  <div class="row">
+    <label for="twk-bottom">Bottom strip</label>
+    <input type="checkbox" id="twk-bottom" checked>
+  </div>
+  <div class="row">
+    <label for="twk-tagline-color">Tagline color</label>
+    <select id="twk-tagline-color">
+      <option value="#f5a000">Amber</option>
+      <option value="#d4d4d4">Grey</option>
+      <option value="#4a9eff">Blue</option>
+    </select>
+  </div>
+</div>
+
+<script>
+(function(){
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "divider": false,
+    "grid": true,
+    "bottom": true,
+    "taglineColor": "#f5a000"
+  }/*EDITMODE-END*/;
+
+  const state = Object.assign({}, TWEAK_DEFAULTS);
+  const panel = document.getElementById('tweaks');
+  const tagline = document.querySelector('.tagline');
+
+  function apply() {
+    document.body.dataset.divider = state.divider ? 'on' : 'off';
+    document.body.dataset.grid = state.grid ? 'on' : 'off';
+    document.body.dataset.bottom = state.bottom ? 'on' : 'off';
+    if (tagline) tagline.style.color = state.taglineColor;
+    document.getElementById('twk-divider').checked = state.divider;
+    document.getElementById('twk-grid').checked = state.grid;
+    document.getElementById('twk-bottom').checked = state.bottom;
+    document.getElementById('twk-tagline-color').value = state.taglineColor;
+  }
+
+  function setKey(k, v) {
+    state[k] = v;
+    apply();
+    try {
+      window.parent.postMessage({type:'__edit_mode_set_keys', edits:{[k]: v}}, '*');
+    } catch(e){}
+  }
+
+  document.getElementById('twk-divider').addEventListener('change', e => setKey('divider', e.target.checked));
+  document.getElementById('twk-grid').addEventListener('change', e => setKey('grid', e.target.checked));
+  document.getElementById('twk-bottom').addEventListener('change', e => setKey('bottom', e.target.checked));
+  document.getElementById('twk-tagline-color').addEventListener('change', e => setKey('taglineColor', e.target.value));
+
+  document.getElementById('twk-close').addEventListener('click', () => {
+    panel.classList.remove('on');
+    try { window.parent.postMessage({type:'__edit_mode_dismissed'}, '*'); } catch(e){}
+  });
+
+  window.addEventListener('message', (e) => {
+    const d = e.data || {};
+    if (d.type === '__activate_edit_mode') panel.classList.add('on');
+    else if (d.type === '__deactivate_edit_mode') panel.classList.remove('on');
+  });
+
+  apply();
+  try { window.parent.postMessage({type:'__edit_mode_available'}, '*'); } catch(e){}
+})();
+</script>
+
+</body>
+</html>

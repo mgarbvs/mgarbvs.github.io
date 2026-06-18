@@ -5,8 +5,13 @@
   <title>Michael Garbus</title>
   <link rel="stylesheet" href="fonts.css" />
 </head>
-<body id="top" style="background-color: #7C7C7C; color: #FFF;font-family: Latin Modern,Georgia,Cambria,Times New Roman,Times,serif; overflow: hidden">
+<body id="top" style="background-color: #2c3e50; color: #ffffff;font-family: Latin Modern,Georgia,Cambria,Times New Roman,Times,serif; scroll-behavior: smooth;">
 
+
+  <nav class="topnav">
+    <a href="#top">Home</a>
+    <a href="#projects">Projects</a>
+  </nav>
 
   <header>
 
@@ -31,13 +36,12 @@
         <p style="font-size: 24px">
       I'm Michael Garbus, an engineer at Amazon Web Services working on <a href = "https://aws.amazon.com/s3/features/tables/"> S3 Tables </a>. <span style="white-space: pre-line;"></span>
       My resume can be found <a href="/MichaelGarbusResume.pdf">here</a>, and you can contact me <a href="mailto:michael.garbus@gmail.com">here</a>. </p>
-      
+
   	  <p style="font-size: 23px"> My current interests include:</p>
-      <li style="font-size: 22px"> Apache Iceberg</li>
-      <li style="font-size: 22px"> Distributed Systems</li>
+      <li style="font-size: 22px"> Apache Iceberg & Distributed Systems</li>
+      <li style="font-size: 22px"> LLMs & Ontological Categorization</li>
       <li style="font-size: 22px"> Pottery</li>
-      <!-- <li style="font-size: 22px"> <a href = "https://github.com/mgarbvs/430-07-torch-enjoyers">Semantic Segmentation</a> and Neural Networks</li>   -->
-      
+
       <div class="logos-container">
       <p></p>
 
@@ -52,8 +56,29 @@
   </div>
   </header>
 
+  <div class="scroll-hint" id="scrollHint">&#8595;</div>
 
-
+  <section class="projects-strip" id="projects">
+    <h2 style="font-size: 28px; margin-bottom: 16px;">Projects</h2>
+    <div class="project-row">
+      <a href="/commoditle/" class="project-card">
+        <div class="project-title">Commoditle</div>
+        <div class="project-desc">A daily Wordle-style game. Guess the commodity from its top producers and end-use industries.</div>
+      </a>
+      <a href="/eno/" class="project-card">
+        <div class="project-title">Oblique Strategies</div>
+        <div class="project-desc">A digital deck of Brian Eno's creative prompts for getting unstuck.</div>
+      </a>
+      <a href="/previewrenderer/" class="project-card">
+        <div class="project-title">Ableton Preview Renderer</div>
+        <div class="project-desc">Render visual previews of Ableton Live sets for sharing and documentation.</div>
+      </a>
+      <a href="/nammaxinstrument/" class="project-card">
+        <div class="project-title">NAM Max for Live</div>
+        <div class="project-desc">Guitar amp modeling inside Ableton Live. Loads .nam models and cabinet IRs — no VST required.</div>
+      </a>
+    </div>
+  </section>
 
  </body>
 <style>
@@ -94,34 +119,33 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%; 
+  height: 100%;
   backface-visibility: hidden;
   transform: rotateY(180deg);
   background-image: url("white_leather.png");
   text-shadow: 0 2px 3px rgba(255, 255, 255, 0.3), 0 -1px 2px rgba(0, 0, 0, 0.2);
-
-
 }
 
 .card.flipped {
   transform: rotateY(180deg);
 }
+
 a,a:visited {
-    color: #a80000
+    color: #e07a5f
 }
 a:hover{
-  color: #D64933;
+  color: #f4a261;
   outline-offset: 2px;
 }
 
 .logos-container {
   display: flex;
-  justify-content: center; /* to center the logos horizontally */
-  align-items: center; /* to center the logos vertically */
+  justify-content: center;
+  align-items: center;
 }
 
 .logos-container a {
-  margin: 0 10px; /* to add some space between the logos */
+  margin: 0 10px;
 }
 
 .logo:hover {
@@ -147,6 +171,94 @@ a:hover{
   display: block;
 }
 
+/* Top nav */
+.topnav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 24px;
+  padding: 14px 24px;
+  z-index: 100;
+}
+
+.topnav a, .topnav a:visited {
+  font-size: 16px;
+  text-decoration: none;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.04em;
+}
+
+.topnav a:hover {
+  color: #f4a261;
+}
+
+/* Scroll hint */
+.scroll-hint {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 28px;
+  color: rgba(255,255,255,0.5);
+  animation: bounce 1.6s infinite;
+  transition: opacity 0.4s;
+}
+
+.scroll-hint.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(6px); }
+}
+
+/* Project strip styles */
+.projects-strip {
+  margin-top: 40px;
+  padding-bottom: 40px;
+}
+
+.project-row {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+}
+
+.project-card {
+  display: block;
+  text-decoration: none;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 20px 24px;
+  width: 260px;
+  flex-shrink: 0;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+.project-card:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+.project-title {
+  font-size: 20px;
+  color: #e07a5f;
+  margin-bottom: 8px;
+}
+
+.project-card:hover .project-title {
+  color: #f4a261;
+}
+
+.project-desc {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
 </style>
 
 <script>
@@ -158,6 +270,11 @@ let flipCount = 0;
 const counterText = document.createElement('div');
 counterText.classList.add('counter-text');
 card.appendChild(counterText);
+
+const scrollHint = document.getElementById('scrollHint');
+window.addEventListener('scroll', function() {
+  if (window.scrollY > 40) scrollHint.classList.add('hidden');
+}, { passive: true });
 
 card.addEventListener('click', function() {
   flipCount++;

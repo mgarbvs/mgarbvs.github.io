@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support — YJP</title>
+  <style>
+    :root {
+      --accent: #FF6600;
+      --text: #1a1a1a;
+      --muted: #555;
+      --border: #e0e0e0;
+      --bg: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    header { margin-bottom: 40px; border-bottom: 2px solid var(--accent); padding-bottom: 20px; }
+    header h1 { font-size: 1.8rem; color: var(--accent); }
+    header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+    h2 {
+      font-size: 1.15rem;
+      margin: 40px 0 12px;
+      color: var(--text);
+      border-left: 3px solid var(--accent);
+      padding-left: 10px;
+    }
+    h3 { font-size: 1rem; margin: 22px 0 6px; color: var(--text); }
+    p { margin-bottom: 14px; }
+    ul { margin: 8px 0 14px 20px; }
+    ul li { margin-bottom: 6px; }
+    strong { color: var(--text); }
+    code {
+      background: #f5f5f5;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.88em;
+    }
+    .callout {
+      background: #fff8f3;
+      border: 1px solid #ffd5b3;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      font-size: 0.95rem;
+    }
+    .faq { margin-bottom: 8px; }
+    .faq strong { display: block; margin-bottom: 2px; }
+    .contact-box {
+      background: #fff8f3;
+      border: 1px solid #ffd5b3;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 24px 0;
+      text-align: center;
+    }
+    .contact-box a { font-size: 1.1rem; font-weight: 600; }
+    footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .links { margin-top: 8px; }
+    .links a { margin-right: 16px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Support</h1>
+  <p>YJP — Yahoo Japan Auctions Viewer &nbsp;·&nbsp; Last updated: June 21, 2026</p>
+</header>
+
+<div class="callout">
+  Need help, found a bug, or have a feature request? Email
+  <a href="mailto:yjpviewerdev@gmail.com">yjpviewerdev@gmail.com</a>
+  and you'll get a reply, usually within a couple of days.
+</div>
+
+<h2>Getting Started</h2>
+<p>YJP is a fast, native iPhone app for browsing and tracking auctions from Yahoo Japan Auctions. Search for an item, tap any listing to see details and a translated title, and add the ones you care about to your watchlist to track their price and get alerts before they close.</p>
+
+<h2>Frequently Asked Questions</h2>
+
+<div class="faq">
+  <h3>How do I track an auction?</h3>
+  <p>Open any listing and tap the watch/star button to add it to your watchlist. The app records a price history for watched items and can notify you when the price changes or a new bid comes in.</p>
+</div>
+
+<div class="faq">
+  <h3>Why does an auction show "Ended" and then come back?</h3>
+  <p>Yahoo Japan uses overtime bidding: a bid placed in the final few minutes extends the closing time. A Live Activity countdown may briefly show "Ended" before the next refresh picks up the extended time. This is expected behavior, not a bug.</p>
+</div>
+
+<div class="faq">
+  <h3>The countdown on my Lock Screen disappeared. Why?</h3>
+  <p>Live Activities start automatically when you watch an auction with a short time remaining, and end automatically when the auction closes, is relisted, or is removed from your watchlist. iOS also limits how long a Live Activity can stay on screen.</p>
+</div>
+
+<div class="faq">
+  <h3>Title translation isn't working.</h3>
+  <p>On-device translation uses Apple's Translation framework and requires iOS 18 or later. The first time you translate, iOS may need to download a language pack — make sure you're connected to Wi-Fi and try again. Translation is not available on some Simulators or older devices.</p>
+</div>
+
+<div class="faq">
+  <h3>Can I place a bid in the app?</h3>
+  <p>No. YJP is a read-only viewer — it does not log in to Yahoo, submit bids, or change anything on Yahoo's servers. To bid, use Yahoo Japan directly or a proxy bidding service such as Buyee, Zenmarket, or FromJapan (the app links to these for convenience).</p>
+</div>
+
+<div class="faq">
+  <h3>I'm not getting notifications.</h3>
+  <p>Check that notifications are enabled for YJP in <strong>iOS Settings → Notifications → YJP</strong>, and that the item is on your watchlist with an alert configured. Notifications are scheduled locally on your device.</p>
+</div>
+
+<div class="faq">
+  <h3>Search results look wrong or empty.</h3>
+  <p>YJP reads Yahoo Japan's public pages, so a layout change on their side can occasionally affect results. If results look broken, please email a screenshot and the search you used so it can be fixed quickly.</p>
+</div>
+
+<div class="faq">
+  <h3>How do I clear cached data?</h3>
+  <p>Use <strong>Settings → Clear Cache</strong> for cached images and <strong>Settings → Clear History</strong> for search history. All app data is stored on your device only.</p>
+</div>
+
+<div class="faq">
+  <h3>Is my data private?</h3>
+  <p>Yes. There are no accounts, no analytics, and no advertising. Everything the app stores stays on your device. See the <a href="privacy_policy.html">Privacy Policy</a> for details.</p>
+</div>
+
+<h2>Contact</h2>
+<div class="contact-box">
+  <p style="margin-bottom:6px;">Questions, bug reports, and feature requests:</p>
+  <a href="mailto:yjpviewerdev@gmail.com">yjpviewerdev@gmail.com</a>
+</div>
+<p>When reporting a bug, it helps to include your iPhone model, iOS version, and a screenshot if you can.</p>
+
+<footer>
+  <p>YJP is an independent app and is not affiliated with, endorsed by, or sponsored by Yahoo Japan Corporation. All trademarks are the property of their respective owners.</p>
+  <p class="links">
+    <a href="privacy_policy.html">Privacy Policy</a>
+    <a href="terms_of_service.html">Terms of Service</a>
+  </p>
+</footer>
+
+</body>
+</html>

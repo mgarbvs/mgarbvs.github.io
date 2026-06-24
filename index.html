@@ -86,9 +86,10 @@
 .card {
   position: relative;
   perspective: 1000px;
-  margin-top: 0px;
+  margin: 0 auto;
   height: 300px;
   width: 600px;
+  max-width: 90vw;
   transform-style: preserve-3d;
   transition: transform 0.8s ease;
   color: #303030;
@@ -223,6 +224,7 @@ a:hover{
 
 .project-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 24px;
   justify-content: center;
 }
@@ -234,6 +236,7 @@ a:hover{
   border: 1px solid rgba(255,255,255,0.2);
   padding: 20px 24px;
   width: 260px;
+  max-width: 100%;
   flex-shrink: 0;
   color: #fff;
   transition: background 0.2s;
@@ -257,6 +260,40 @@ a:hover{
 .project-desc {
   font-size: 15px;
   line-height: 1.5;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  body {
+    padding: 0 16px;
+  }
+
+  .card {
+    height: 220px;
+  }
+
+  .card h1 {
+    font-size: 34px !important;
+  }
+
+  header p {
+    font-size: 18px !important;
+  }
+
+  header li {
+    font-size: 17px !important;
+  }
+
+  .topnav {
+    padding: 8px 14px;
+    gap: 16px;
+    background: rgba(44, 62, 80, 0.85);
+    border-radius: 0 0 0 10px;
+  }
+
+  .topnav a, .topnav a:visited {
+    color: #fff;
+  }
 }
 
 </style>

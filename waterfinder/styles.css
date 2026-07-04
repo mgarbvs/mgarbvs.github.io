@@ -1,0 +1,32 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #222; }
+body { display: grid; grid-template-rows: auto 1fr; height: 100vh; }
+header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 14px; background: white; border-bottom: 1px solid #e6e8eb; }
+header h1 { margin: 0; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.01em; }
+header button { padding: 6px 12px; border: 1px solid #d8dde2; border-radius: 999px; background: white; font-size: 0.85rem; cursor: pointer; }
+header button:hover { background: #f4f6f8; }
+.header-controls { display: flex; align-items: center; gap: 10px; }
+#show-control { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; color: #566573; }
+#show-control select { padding: 5px 8px; border: 1px solid #d8dde2; border-radius: 999px; background: white; font-size: 0.85rem; cursor: pointer; }
+#controls { position: absolute; top: 64px; left: 14px; z-index: 500; background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); padding: 12px 14px; max-width: 260px; font-size: 0.85rem; }
+#controls #status { margin: 0 0 8px; color: #333; font-weight: 500; }
+#controls details summary { cursor: pointer; color: #555; font-size: 0.8rem; user-select: none; }
+#controls details[open] summary { margin-bottom: 6px; }
+#controls .feature { display: block; margin-top: 8px; padding-top: 8px; border-top: 1px solid #eef0f3; font-size: 0.8rem; }
+.seasonal-banner { margin: 0 0 8px; padding: 6px 8px; background: #eaf2fb; border: 1px solid #cfe0f3; border-radius: 6px; font-size: 0.78rem; color: #1a4971; line-height: 1.4; }
+.fineprint { margin: 10px 0 0; font-size: 0.7rem; color: #888; line-height: 1.4; }
+.fineprint a { color: #555; }
+#map { height: 100%; }
+.popup-title { font-weight: 600; margin-bottom: 2px; }
+.popup-dist { font-size: 0.8rem; color: #1565c0; font-weight: 500; margin-bottom: 4px; }
+.popup-meta { font-size: 0.85rem; color: #444; line-height: 1.4; }
+.popup-actions { margin-top: 8px; font-size: 0.8rem; }
+.legend-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; cursor: pointer; }
+.legend-row .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); }
+.pin-wrap { background: transparent; border: 0; }
+.pin { display: block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+@media (max-width: 600px) {
+  #controls { left: 8px; right: 8px; max-width: none; top: auto; bottom: 8px; }
+  header button, #show-control select { min-height: 44px; padding: 8px 14px; }
+  .legend-row { min-height: 32px; }
+}

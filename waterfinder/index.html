@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WaterFinder NYC</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>WaterFinder NYC</h1>
+    <div class="header-controls">
+      <label id="show-control">Show
+        <select id="show-count">
+          <option value="20">20 nearest</option>
+          <option value="all">All</option>
+        </select>
+      </label>
+      <button id="locate" title="Recenter on my location">📍 Find me</button>
+    </div>
+  </header>
+  <aside id="controls">
+    <p id="seasonal-banner" class="seasonal-banner" hidden>❄️ Many outdoor fountains are shut off for the season (Nov–Apr) — bottle fillers and indoor sinks still work.</p>
+    <p id="status">Loading…</p>
+    <details>
+      <summary>Filters</summary>
+      <div id="legend"></div>
+      <label class="feature"><input type="checkbox" id="f-access"> Accessible only</label>
+    </details>
+    <p class="fineprint">Showing 20 nearest. Data: <a href="https://data.cityofnewyork.us/Recreation/NYC-Parks-Drinking-Fountains/qnv7-p7a2" target="_blank" rel="noopener">NYC Open Data</a>.</p>
+  </aside>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="app.js"></script>
+</body>
+</html>

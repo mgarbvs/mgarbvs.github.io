@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Rain Forecast</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:             #0f172a;
+      --surface:        #1e293b;
+      --surface-active: #334155;
+      --text-strong:    #f8fafc;
+      --text:           #e2e8f0;
+      --muted:          #475569;
+      --secondary:      #94a3b8;
+      --canvas-border:  rgba(255,255,255,0.06);
+    }
+    body.light {
+      --bg:             #f8fafc;
+      --surface:        #e2e8f0;
+      --surface-active: #cbd5e1;
+      --text-strong:    #0f172a;
+      --text:           #1e293b;
+      --muted:          #64748b;
+      --secondary:      #64748b;
+      --canvas-border:  rgba(0,0,0,0.08);
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s, color 0.2s;
+    }
+    .header {
+      padding: 28px 20px 6px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .header-left { flex: 1; }
+    .location-name {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-strong);
+      letter-spacing: -0.4px;
+    }
+    .updated-at {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    #theme-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 4px 0 0 12px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .tabs {
+      display: flex;
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 3px;
+      margin: 16px 20px 0;
+      transition: background 0.2s;
+    }
+    .tab {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s;
+      font-family: inherit;
+    }
+    .tab.active {
+      background: var(--surface-active);
+      color: var(--text-strong);
+    }
+    .chart-scroll {
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 16px 0 0;
+    }
+    .chart-scroll::-webkit-scrollbar { display: none; }
+    .chart-inner { position: relative; }
+    #canvas-cloud, #canvas-cloud-models {
+      display: block;
+      border-top: 1px solid var(--canvas-border);
+    }
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px 32px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+      flex-wrap: wrap;
+    }
+    .legend-grad {
+      flex: 0 0 64px;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #4c1d95, #0891b2);
+    }
+    .model-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--secondary);
+      margin-right: 4px;
+    }
+    .model-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-wrap {
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="location-name" id="loc">Detecting location…</div>
+    <div class="updated-at" id="updated"></div>
+  </div>
+  <button id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode">☀︎</button>
+</div>
+
+<div class="tabs" id="tabs" style="display:none">
+  <button class="tab active" data-tab="ensemble">Ensemble</button>
+  <button class="tab" data-tab="models">Models</button>
+</div>
+
+<div class="status-wrap" id="status-wrap">
+  <span id="status">Fetching forecast…</span>
+</div>
+
+<div class="chart-scroll" id="scroll" style="display:none">
+  <div class="chart-inner" id="inner">
+    <canvas id="canvas-ensemble"></canvas>
+    <canvas id="canvas-models" style="display:none"></canvas>
+    <canvas id="canvas-cloud"></canvas>
+    <canvas id="canvas-cloud-models" style="display:none"></canvas>
+  </div>
+</div>
+
+<div class="legend" id="legend-ensemble" style="display:none">
+  <span>Low model agreement</span>
+  <div class="legend-grad"></div>
+  <span>High agreement</span>
+</div>
+<div class="legend" id="legend-models" style="display:none">
+  <!-- populated dynamically -->
+</div>
+
+<script>
+const PX_PER_HOUR  = 20;
+const CHART_HEIGHT = 240;
+const CLOUD_HEIGHT = 110;
+const Y_AXIS_WIDTH = 56;
+
+const MODEL_DEFS = [
+  { id: 'icon_seamless', label: 'ICON',  color: '#38bdf8' },
+  { id: 'gfs_seamless',  label: 'GFS',   color: '#fb923c' },
+  { id: 'ecmwf_ifs025',  label: 'ECMWF', color: '#4ade80' },
+  { id: 'gem_seamless',  label: 'GEM',   color: '#c084fc' },
+];
+
+const THEMES = {
+  dark: {
+    bg:        '#0f172a',
+    night:     'rgba(0,0,0,0.28)',
+    gridX:     'rgba(255,255,255,0.04)',
+    gridY:     'rgba(255,255,255,0.05)',
+    tick:      '#475569',
+    dayLabel:  '#64748b',
+    nowLine:   'rgba(248,250,252,0.45)',
+    ttBg:      '#1e293b',
+    ttTitle:   '#f1f5f9',
+    ttBody:    '#94a3b8',
+    ttBorder:  '#334155',
+    zeroBar:   'rgba(71,85,105,0.2)',
+    cloudLabel:'#475569',
+  },
+  light: {
+    bg:        '#f8fafc',
+    night:     'rgba(100,116,139,0.10)',
+    gridX:     'rgba(0,0,0,0.05)',
+    gridY:     'rgba(0,0,0,0.06)',
+    tick:      '#64748b',
+    dayLabel:  '#94a3b8',
+    nowLine:   'rgba(15,23,42,0.3)',
+    ttBg:      '#ffffff',
+    ttTitle:   '#1e293b',
+    ttBody:    '#64748b',
+    ttBorder:  '#e2e8f0',
+    zeroBar:   'rgba(148,163,184,0.25)',
+    cloudLabel:'#94a3b8',
+  },
+};
+
+let currentTheme = 'dark';
+let renderState   = null;
+let chartInstances = {};
+
+// ── Color helpers ────────────────────────────────────────────────
+// Purple (#4c1d95) → Cyan (#0891b2)
+function agreeColor(t) {
+  const r = Math.round(76  + (8   - 76)  * t);
+  const g = Math.round(29  + (145 - 29)  * t);
+  const b = Math.round(149 + (178 - 149) * t);
+  return `rgb(${r},${g},${b})`;
+}
+
+// ── Data fetching ────────────────────────────────────────────────
+async function getLocation() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) {
+      resolve({ lat: 40.7128, lon: -74.006, fallback: true });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({ lat: p.coords.latitude, lon: p.coords.longitude, fallback: false }),
+      () => resolve({ lat: 40.7128, lon: -74.006, fallback: true }),
+      { timeout: 8000 }
+    );
+  });
+}
+
+async function getCityName(lat, lon) {
+  try {
+    const data = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+      { headers: { 'Accept-Language': 'en' } }
+    ).then(r => r.json());
+    return data.address.city || data.address.town || data.address.village || data.address.county || '';
+  } catch { return ''; }
+}
+
+async function fetchData(lat, lon) {
+  const base = `latitude=${lat}&longitude=${lon}&precipitation_unit=inch&timezone=auto&forecast_days=7`;
+  const [ens, daily, ...modelResults] = await Promise.all([
+    fetch(`https://ensemble-api.open-meteo.com/v1/ensemble?${base}&hourly=precipitation&models=icon_seamless`).then(r => r.json()),
+    fetch(`https://api.open-meteo.com/v1/forecast?${base}&daily=sunrise,sunset`).then(r => r.json()),
+    ...MODEL_DEFS.map(m =>
+      fetch(`https://api.open-meteo.com/v1/forecast?${base}&hourly=precipitation,cloud_cover&models=${m.id}`)
+        .then(r => r.json()).catch(() => null)
+    ),
+  ]);
+  const models = MODEL_DEFS
+    .map((def, i) => ({ ...def, hourly: modelResults[i]?.hourly }))
+    .filter(m => m.hourly?.precipitation);
+  return { ens, daily, models };
+}
+
+// ── Data processing ──────────────────────────────────────────────
+function processEnsemble(hourly) {
+  const times = hourly.time.map(t => new Date(t));
+  const keys  = Object.keys(hourly).filter(k => k.startsWith('precipitation_member'));
+  const stats = times.map((_, i) => {
+    const vals = keys.map(k => hourly[k][i] ?? 0);
+    const n    = vals.length;
+    const mean = vals.reduce((a, b) => a + b, 0) / n;
+    const variance = vals.reduce((a, b) => a + (b - mean) ** 2, 0) / n;
+    return { mean, std: Math.sqrt(variance) };
+  });
+  const maxStd = Math.max(...stats.map(s => s.std), 1e-6);
+  const agreements = stats.map(s => 1 - s.std / maxStd);
+  return { times, stats, agreements };
+}
+
+function alignToTimes(times, srcTimes, srcValues) {
+  const idx = Object.fromEntries((srcTimes ?? []).map((t, i) => [t, i]));
+  return times.map(t => {
+    const i = idx[t.toISOString().slice(0, 16)];
+    return i !== undefined ? (srcValues[i] ?? null) : null;
+  });
+}
+
+// ── Chart building ───────────────────────────────────────────────
+function makePlugins(daily, sunriseTimes, sunsetTimes, t) {
+  const bgPlugin = {
+    id: 'bg',
+    beforeDraw(chart) {
+      const { ctx, chartArea: ca, scales: { x } } = chart;
+      if (!ca) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(ca.left, ca.top, ca.width, ca.height);
+      ctx.clip();
+      ctx.fillStyle = t.bg;
+      ctx.fillRect(ca.left, ca.top, ca.width, ca.height);
+      const clamp = v => Math.min(Math.max(v, ca.left), ca.right);
+      daily.daily.time.forEach((day, i) => {
+        const start   = new Date(day + 'T00:00:00');
+        const end     = new Date(day + 'T23:59:59');
+        const x0   = clamp(x.getPixelForValue(start.getTime()));
+        const xSR  = clamp(x.getPixelForValue(sunriseTimes[i].getTime()));
+        const xSS  = clamp(x.getPixelForValue(sunsetTimes[i].getTime()));
+        const xEnd = clamp(x.getPixelForValue(end.getTime()));
+        ctx.fillStyle = t.night;
+        if (xSR > x0)   ctx.fillRect(x0,  ca.top, xSR - x0,  ca.height);
+        if (xEnd > xSS) ctx.fillRect(xSS, ca.top, xEnd - xSS, ca.height);
+      });
+      ctx.restore();
+    }
+  };
+
+  const dayLabelPlugin = {
+    id: 'dayLabels',
+    afterDraw(chart) {
+      const { ctx, chartArea: ca, scales: { x } } = chart;
+      if (!ca) return;
+      ctx.save();
+      ctx.font = '600 11px -apple-system, sans-serif';
+      ctx.fillStyle = t.dayLabel;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      daily.daily.time.forEach(day => {
+        const noon = new Date(day + 'T12:00:00');
+        const px   = x.getPixelForValue(noon.getTime());
+        if (px >= ca.left && px <= ca.right)
+          ctx.fillText(noon.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase(), px, ca.top + 5);
+      });
+      ctx.restore();
+    }
+  };
+
+  const nowPlugin = {
+    id: 'now',
+    afterDraw(chart) {
+      const { ctx, chartArea: ca, scales: { x } } = chart;
+      if (!ca) return;
+      const px = x.getPixelForValue(Date.now());
+      if (px < ca.left || px > ca.right) return;
+      ctx.save();
+      ctx.strokeStyle = t.nowLine;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(px, ca.top);
+      ctx.lineTo(px, ca.bottom);
+      ctx.stroke();
+      ctx.restore();
+    }
+  };
+
+  return [bgPlugin, dayLabelPlugin, nowPlugin];
+}
+
+function makeScaleOptions(t) {
+  return {
+    x: {
+      type: 'time',
+      time: { unit: 'hour', displayFormats: { hour: 'HH' } },
+      ticks: {
+        color: t.tick,
+        font: { size: 10 },
+        maxRotation: 0,
+        autoSkip: false,
+        callback(value) { return String(new Date(value).getHours()).padStart(2, '0'); },
+      },
+      grid:   { color: t.gridX },
+      border: { display: false },
+    },
+    y: {
+      min: 0,
+      ticks:  { color: t.tick, font: { size: 10 }, maxTicksLimit: 5 },
+      grid:   { color: t.gridY },
+      border: { display: false },
+      title:  { display: true, text: 'inch / h', color: t.tick, font: { size: 10 } },
+      afterFit(axis) { axis.width = Y_AXIS_WIDTH; },
+    }
+  };
+}
+
+function makeTooltip(t) {
+  return {
+    backgroundColor: t.ttBg,
+    titleColor:      t.ttTitle,
+    bodyColor:       t.ttBody,
+    borderColor:     t.ttBorder,
+    borderWidth: 1,
+    padding: 12,
+  };
+}
+
+function makeCloudScale(t) {
+  return {
+    x: { type: 'time', time: { unit: 'hour' }, display: false },
+    y: {
+      min: 0, max: 100,
+      ticks:  { display: false },
+      grid:   { color: t.gridY },
+      border: { display: false },
+    },
+  };
+}
+
+function makeCloudLabelPlugin(t) {
+  return {
+    id: 'cloudLabel',
+    afterDraw(chart) {
+      const { ctx, chartArea: ca } = chart;
+      if (!ca) return;
+      ctx.save();
+      ctx.font = '600 9px -apple-system, sans-serif';
+      ctx.fillStyle = t.cloudLabel;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.translate(ca.left / 2, ca.top + ca.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('CLOUD COVER %', 0, 0);
+      ctx.restore();
+    }
+  };
+}
+
+const CLOUD_LAYOUT = { padding: { top: 2, right: 20, bottom: 2, left: Y_AXIS_WIDTH } };
+
+// ── Render functions ─────────────────────────────────────────────
+function renderEnsembleChart(canvasEl, times, stats, agreements, plugins, t) {
+  const colors = stats.map((s, i) => s.mean < 0.001 ? t.zeroBar : agreeColor(agreements[i]));
+  return new Chart(canvasEl, {
+    type: 'bar',
+    plugins,
+    data: {
+      labels: times.map(t => t.getTime()),
+      datasets: [{ data: stats.map(s => s.mean), backgroundColor: colors, borderWidth: 0, barPercentage: 0.88, categoryPercentage: 1.0 }]
+    },
+    options: {
+      animation: false, responsive: false, maintainAspectRatio: false,
+      layout: { padding: { top: 28, right: 20, bottom: 0, left: 0 } },
+      scales: makeScaleOptions(t),
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          ...makeTooltip(t),
+          callbacks: {
+            title([item]) {
+              return new Date(item.parsed.x).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+            },
+            label(item) {
+              const a = agreements[item.dataIndex];
+              return [` ${item.parsed.y.toFixed(3)} in/h`, ` ${Math.round(a * 100)}% model agreement`];
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderModelsChart(canvasEl, times, models, plugins, t) {
+  const datasets = models.map(m => ({
+    label: m.label,
+    data: alignToTimes(times, m.hourly.time, m.hourly.precipitation),
+    borderColor: m.color, backgroundColor: m.color + '18',
+    borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3, spanGaps: true,
+  }));
+  return new Chart(canvasEl, {
+    type: 'line',
+    plugins,
+    data: { labels: times.map(t => t.getTime()), datasets },
+    options: {
+      animation: false, responsive: false, maintainAspectRatio: false,
+      layout: { padding: { top: 28, right: 20, bottom: 0, left: 0 } },
+      interaction: { mode: 'index', intersect: false },
+      scales: makeScaleOptions(t),
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          ...makeTooltip(t),
+          callbacks: {
+            title([item]) {
+              return new Date(item.parsed.x).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+            },
+            label(item) {
+              const v = item.parsed.y;
+              return ` ● ${item.dataset.label}: ${v === null ? 'n/a' : v.toFixed(3)} in/h`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderCloudChart(canvasEl, times, cloudMeans, cloudAgreements, t) {
+  const colors = cloudMeans.map((v, i) => v < 5 ? t.zeroBar : agreeColor(cloudAgreements[i]));
+  return new Chart(canvasEl, {
+    type: 'bar',
+    plugins: [makeCloudLabelPlugin(t)],
+    data: {
+      labels: times.map(t => t.getTime()),
+      datasets: [{ data: cloudMeans, backgroundColor: colors, borderWidth: 0, barPercentage: 0.9, categoryPercentage: 1.0 }]
+    },
+    options: {
+      animation: false, responsive: false, maintainAspectRatio: false,
+      layout: CLOUD_LAYOUT,
+      scales: makeCloudScale(t),
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          ...makeTooltip(t),
+          callbacks: {
+            title([item]) {
+              return new Date(item.parsed.x).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+            },
+            label(item) {
+              const a = cloudAgreements[item.dataIndex];
+              return [` Cloud cover: ${Math.round(item.parsed.y)}%`, ` ${Math.round(a * 100)}% model agreement`];
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderCloudModelsChart(canvasEl, times, models, t) {
+  const datasets = models.map(m => ({
+    label: m.label,
+    data: alignToTimes(times, m.hourly.time, m.hourly.cloud_cover),
+    borderColor: m.color, backgroundColor: 'transparent',
+    borderWidth: 1.5, pointRadius: 0, tension: 0.3, spanGaps: true,
+  }));
+  return new Chart(canvasEl, {
+    type: 'line',
+    plugins: [makeCloudLabelPlugin(t)],
+    data: { labels: times.map(t => t.getTime()), datasets },
+    options: {
+      animation: false, responsive: false, maintainAspectRatio: false,
+      layout: CLOUD_LAYOUT,
+      interaction: { mode: 'index', intersect: false },
+      scales: makeCloudScale(t),
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          ...makeTooltip(t),
+          callbacks: {
+            title([item]) {
+              return new Date(item.parsed.x).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+            },
+            label(item) {
+              const v = item.parsed.y;
+              return ` ● ${item.dataset.label}: ${v === null ? 'n/a' : Math.round(v)}%`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── Theme switching ──────────────────────────────────────────────
+function renderAllCharts() {
+  if (!renderState) return;
+  Object.values(chartInstances).forEach(c => c.destroy());
+  chartInstances = {};
+
+  const { daily, sunriseTimes, sunsetTimes, times, stats, agreements, cloudMeans, cloudAgreements, models } = renderState;
+  const t = THEMES[currentTheme];
+  const plugins = makePlugins(daily, sunriseTimes, sunsetTimes, t);
+
+  // Update cloud canvas backgrounds to match theme
+  ['canvas-cloud', 'canvas-cloud-models'].forEach(id => {
+    document.getElementById(id).style.background = t.bg;
+  });
+
+  chartInstances.ensemble    = renderEnsembleChart(document.getElementById('canvas-ensemble'), times, stats, agreements, plugins, t);
+  chartInstances.models      = renderModelsChart(document.getElementById('canvas-models'), times, models, plugins, t);
+  chartInstances.cloud       = renderCloudChart(document.getElementById('canvas-cloud'), times, cloudMeans, cloudAgreements, t);
+  chartInstances.cloudModels = renderCloudModelsChart(document.getElementById('canvas-cloud-models'), times, models, t);
+}
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.body.className = currentTheme === 'light' ? 'light' : '';
+  document.getElementById('theme-btn').textContent = currentTheme === 'light' ? '☾' : '☀︎';
+  renderAllCharts();
+}
+
+// ── UI helpers ───────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  const ens = name === 'ensemble';
+  document.getElementById('canvas-ensemble').style.display     = ens ? 'block' : 'none';
+  document.getElementById('canvas-models').style.display       = ens ? 'none'  : 'block';
+  document.getElementById('canvas-cloud').style.display        = ens ? 'block' : 'none';
+  document.getElementById('canvas-cloud-models').style.display = ens ? 'none'  : 'block';
+  document.getElementById('legend-ensemble').style.display     = ens ? 'flex'  : 'none';
+  document.getElementById('legend-models').style.display       = ens ? 'none'  : 'flex';
+}
+
+function scrollToNow(scrollEl, startTime) {
+  const elapsedHours = (Date.now() - startTime.getTime()) / 3_600_000;
+  const nowPx = Y_AXIS_WIDTH + elapsedHours * PX_PER_HOUR;
+  scrollEl.scrollLeft = Math.max(0, nowPx - scrollEl.clientWidth * 0.25);
+}
+
+// ── Init ─────────────────────────────────────────────────────────
+async function init() {
+  const { lat, lon, fallback } = await getLocation();
+
+  const [city, { ens, daily, models }] = await Promise.all([
+    getCityName(lat, lon),
+    fetchData(lat, lon),
+  ]);
+
+  document.getElementById('loc').textContent = city || 'Rain Forecast';
+  document.getElementById('updated').textContent = fallback
+    ? 'Location unavailable — showing New York City'
+    : `Updated ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+
+  const { times, stats, agreements } = processEnsemble(ens.hourly);
+  const sunriseTimes = daily.daily.sunrise.map(s => new Date(s));
+  const sunsetTimes  = daily.daily.sunset.map(s => new Date(s));
+
+  const cloudByModel = models.map(m => alignToTimes(times, m.hourly.time, m.hourly.cloud_cover));
+  const cloudStats   = times.map((_, i) => {
+    const vals = cloudByModel.map(a => a[i]).filter(v => v !== null);
+    if (!vals.length) return { mean: 0, std: 0 };
+    const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const variance = vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length;
+    return { mean, std: Math.sqrt(variance) };
+  });
+  const maxCloudStd   = Math.max(...cloudStats.map(s => s.std), 1e-6);
+  const cloudAgreements = cloudStats.map(s => 1 - s.std / maxCloudStd);
+  const cloudMeans      = cloudStats.map(s => s.mean);
+
+  // Store everything needed to re-render on theme change
+  renderState = { daily, sunriseTimes, sunsetTimes, times, stats, agreements, cloudMeans, cloudAgreements, models };
+
+  // Show UI
+  document.getElementById('status-wrap').style.display = 'none';
+  document.getElementById('scroll').style.display      = 'block';
+  document.getElementById('tabs').style.display        = 'flex';
+  document.getElementById('legend-ensemble').style.display = 'flex';
+
+  // Size all canvases
+  const w = times.length * PX_PER_HOUR;
+  document.getElementById('inner').style.width = w + 'px';
+  ['canvas-ensemble', 'canvas-models'].forEach(id => {
+    const c = document.getElementById(id);
+    c.width = w; c.height = CHART_HEIGHT;
+    c.style.width = w + 'px'; c.style.height = CHART_HEIGHT + 'px';
+  });
+  ['canvas-cloud', 'canvas-cloud-models'].forEach(id => {
+    const c = document.getElementById(id);
+    c.width = w; c.height = CLOUD_HEIGHT;
+    c.style.width = w + 'px'; c.style.height = CLOUD_HEIGHT + 'px';
+  });
+
+  renderAllCharts();
+
+  // Build models legend
+  const legendModels = document.getElementById('legend-models');
+  models.forEach(m => {
+    const el = document.createElement('div');
+    el.className = 'model-item';
+    el.innerHTML = `<span class="model-dot" style="background:${m.color}"></span>${m.label}`;
+    legendModels.appendChild(el);
+  });
+
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  scrollToNow(document.getElementById('scroll'), times[0]);
+}
+
+init().catch(err => {
+  document.getElementById('status').textContent = 'Failed to load forecast — please try again.';
+  console.error(err);
+});
+</script>
+</body>
+</html>

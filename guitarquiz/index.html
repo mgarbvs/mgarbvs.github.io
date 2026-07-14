@@ -165,7 +165,8 @@ function drawBoard() {
   svg.innerHTML = "";
   const stringGap = 34, fretGap = vertical ? 52 : 64;
   const pad = 26, nutPad = 34;
-  const across = stringGap * 5 + pad * 2;              // span across strings
+  const across = stringGap * 5 + pad * 2 + (vertical ? 22 : 0); // span across strings (+ label gutter)
+  const sEnd = pad + stringGap * 5;                    // position of last string
   const along = nutPad + fretGap * FRETS + pad;        // span along neck
   const W = vertical ? across : along;
   const H = vertical ? along : across;
@@ -178,7 +179,7 @@ function drawBoard() {
 
   // board background
   svg.appendChild(el("rect", vertical
-    ? {x: pad - 14, y: nutPad, width: across - 2*pad + 28, height: fretGap*FRETS, fill: "#2e2419", rx: 4}
+    ? {x: pad - 14, y: nutPad, width: stringGap*5 + 28, height: fretGap*FRETS, fill: "#2e2419", rx: 4}
     : {x: nutPad, y: pad - 14, width: fretGap*FRETS, height: across - 2*pad + 28, fill: "#2e2419", rx: 4}));
 
   // fret markers
@@ -188,12 +189,12 @@ function drawBoard() {
     const dots = m % 12 === 0 ? [-stringGap, stringGap] : [0];
     for (const off of dots) {
       svg.appendChild(el("circle", vertical
-        ? {cx: across/2 + off, cy: mid, r: 6, fill: "#4a3d2c"}
+        ? {cx: pad + stringGap*2.5 + off, cy: mid, r: 6, fill: "#4a3d2c"}
         : {cx: mid, cy: H/2 + off, r: 6, fill: "#4a3d2c"}));
     }
     // fret number label
     const t = el("text", vertical
-      ? {x: across - 4, y: mid + 4, "text-anchor": "start", "font-size": 12, fill: "#8a8f9a"}
+      ? {x: sEnd + 20, y: mid + 4, "text-anchor": "start", "font-size": 12, fill: "#8a8f9a"}
       : {x: mid, y: H - 4, "text-anchor": "middle", "font-size": 12, fill: "#8a8f9a"});
     t.textContent = m;
     svg.appendChild(t);
@@ -203,7 +204,7 @@ function drawBoard() {
   for (let f = 0; f <= FRETS; f++) {
     const p = fPos(f);
     svg.appendChild(el("line", vertical
-      ? {x1: pad - 14, y1: p, x2: across - pad + 14, y2: p, stroke: f ? "#6a6f7a" : "#d8d3c8", "stroke-width": f ? 2 : 6}
+      ? {x1: pad - 14, y1: p, x2: sEnd + 14, y2: p, stroke: f ? "#6a6f7a" : "#d8d3c8", "stroke-width": f ? 2 : 6}
       : {x1: p, y1: pad - 14, x2: p, y2: H - pad + 14, stroke: f ? "#6a6f7a" : "#d8d3c8", "stroke-width": f ? 2 : 6}));
   }
 

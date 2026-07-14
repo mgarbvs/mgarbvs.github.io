@@ -265,7 +265,7 @@ function updateProgress() {
 }
 
 function tick() {
-  const ms = totalMs + (noteStart ? performance.now() - noteStart : 0);
+  const ms = noteStart ? performance.now() - noteStart : 0;
   document.getElementById("timer").textContent = (ms/1000).toFixed(1) + "s";
 }
 

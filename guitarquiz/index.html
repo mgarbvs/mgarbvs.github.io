@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fretboard Note Quiz</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #1a1d23;
+    color: #e8e6e3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    min-height: 100dvh;
+  }
+  h1 { font-size: 1.15rem; font-weight: 600; margin-bottom: 8px; }
+
+  #controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  select, button.ctl {
+    background: #2a2e37;
+    color: #e8e6e3;
+    border: 1px solid #444a57;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+  }
+  #stats {
+    display: flex;
+    gap: 16px;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    color: #a8adb8;
+    font-variant-numeric: tabular-nums;
+  }
+  #stats b { color: #e8e6e3; }
+
+  #board-wrap {
+    overflow: auto;
+    max-width: 100%;
+    max-height: 48dvh;
+    border-radius: 10px;
+    -webkit-overflow-scrolling: touch;
+  }
+  svg { display: block; }
+
+  #bank {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+    width: 100%;
+    max-width: 440px;
+  }
+  #bank button {
+    background: #2a2e37;
+    color: #e8e6e3;
+    border: 1px solid #444a57;
+    border-radius: 10px;
+    padding: 14px 4px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+    line-height: 1.2;
+  }
+  #bank button:active { background: #3a3f4b; }
+  #bank button.wrong { background: #7a2c2c; border-color: #a33; animation: shake .25s; }
+  #bank button.right { background: #2c6e3f; border-color: #3a9; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  #summary {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+    background: #2a2e37;
+    border-radius: 12px;
+    padding: 20px 28px;
+  }
+  #summary h2 { font-size: 1.1rem; margin-bottom: 10px; }
+  #summary p { margin: 4px 0; color: #a8adb8; }
+  #summary b { color: #e8e6e3; }
+  #summary button { margin-top: 14px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<h1>🎸 Fretboard Note Quiz</h1>
+
+<div id="controls">
+  <label for="mode">Round:</label>
+  <select id="mode">
+    <option value="3">3 notes</option>
+    <option value="5" selected>5 notes</option>
+    <option value="10">10 notes</option>
+    <option value="inf">Infinite</option>
+  </select>
+  <button class="ctl" id="restart">Restart</button>
+</div>
+
+<div id="stats">
+  <span>Note <b id="progress">1</b></span>
+  <span>Misses <b id="misses">0</b></span>
+  <span>⏱ <b id="timer">0.0s</b></span>
+</div>
+
+<div id="board-wrap"><svg id="board"></svg></div>
+
+<div id="bank"></div>
+
+<div id="summary">
+  <h2>Round complete!</h2>
+  <p>Notes: <b id="s-notes"></b></p>
+  <p>Misses: <b id="s-misses"></b></p>
+  <p>Total time: <b id="s-total"></b></p>
+  <p>Avg per note: <b id="s-avg"></b></p>
+  <button class="ctl" id="again">Play again</button>
+</div>
+
+<script>
+const NOTES = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"];
+const LABELS = {"A#":"A♯/B♭","C#":"C♯/D♭","D#":"D♯/E♭","F#":"F♯/G♭","G#":"G♯/A♭"};
+const TUNING = ["E","A","D","G","B","E"]; // low to high
+const FRETS = 26;
+const MARKERS = [3,5,7,9,12,15,17,19,21,24];
+
+function noteAt(stringIdx, fret) {
+  return NOTES[(NOTES.indexOf(TUNING[stringIdx]) + fret) % 12];
+}
+
+// --- state ---
+let target = null;        // {string, fret}
+let roundLen = 5;
+let done = 0, misses = 0, totalMs = 0;
+let noteStart = 0, timerId = null, locked = false;
+
+// --- fretboard rendering ---
+const svg = document.getElementById("board");
+const NS = "http://www.w3.org/2000/svg";
+let vertical = false;
+
+function el(tag, attrs) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+function drawBoard() {
+  vertical = window.innerWidth < 600;
+  svg.innerHTML = "";
+  const stringGap = 34, fretGap = vertical ? 52 : 64;
+  const pad = 26, nutPad = 34;
+  const across = stringGap * 5 + pad * 2;              // span across strings
+  const along = nutPad + fretGap * FRETS + pad;        // span along neck
+  const W = vertical ? across : along;
+  const H = vertical ? along : across;
+  svg.setAttribute("width", W);
+  svg.setAttribute("height", H);
+
+  // string index 0 = low E. Horizontal: low E at bottom. Vertical: low E at left.
+  const sPos = i => vertical ? pad + i * stringGap : (H - pad) - i * stringGap;
+  const fPos = f => nutPad + f * fretGap;              // position of fret wire f
+
+  // board background
+  svg.appendChild(el("rect", vertical
+    ? {x: pad - 14, y: nutPad, width: across - 2*pad + 28, height: fretGap*FRETS, fill: "#2e2419", rx: 4}
+    : {x: nutPad, y: pad - 14, width: fretGap*FRETS, height: across - 2*pad + 28, fill: "#2e2419", rx: 4}));
+
+  // fret markers
+  for (const m of MARKERS) {
+    const mid = fPos(m) - fretGap / 2;
+    const c = (across) / 2 + (vertical ? 0 : (H - across) / 2);
+    const dots = m % 12 === 0 ? [-stringGap, stringGap] : [0];
+    for (const off of dots) {
+      svg.appendChild(el("circle", vertical
+        ? {cx: across/2 + off, cy: mid, r: 6, fill: "#4a3d2c"}
+        : {cx: mid, cy: H/2 + off, r: 6, fill: "#4a3d2c"}));
+    }
+    // fret number label
+    const t = el("text", vertical
+      ? {x: across - 4, y: mid + 4, "text-anchor": "start", "font-size": 12, fill: "#8a8f9a"}
+      : {x: mid, y: H - 4, "text-anchor": "middle", "font-size": 12, fill: "#8a8f9a"});
+    t.textContent = m;
+    svg.appendChild(t);
+  }
+
+  // fret wires (0 = nut, thicker)
+  for (let f = 0; f <= FRETS; f++) {
+    const p = fPos(f);
+    svg.appendChild(el("line", vertical
+      ? {x1: pad - 14, y1: p, x2: across - pad + 14, y2: p, stroke: f ? "#6a6f7a" : "#d8d3c8", "stroke-width": f ? 2 : 6}
+      : {x1: p, y1: pad - 14, x2: p, y2: H - pad + 14, stroke: f ? "#6a6f7a" : "#d8d3c8", "stroke-width": f ? 2 : 6}));
+  }
+
+  // strings (thicker = lower)
+  for (let i = 0; i < 6; i++) {
+    const p = sPos(i);
+    const w = 3.2 - i * 0.45;
+    svg.appendChild(el("line", vertical
+      ? {x1: p, y1: nutPad, x2: p, y2: nutPad + fretGap*FRETS, stroke: "#b8b0a0", "stroke-width": w}
+      : {x1: nutPad, y1: p, x2: nutPad + fretGap*FRETS, y2: p, stroke: "#b8b0a0", "stroke-width": w}));
+    // open-string label at the nut
+    const t = el("text", vertical
+      ? {x: p, y: nutPad - 12, "text-anchor": "middle", "font-size": 13, fill: "#8a8f9a"}
+      : {x: nutPad - 14, y: p + 4, "text-anchor": "middle", "font-size": 13, fill: "#8a8f9a"});
+    t.textContent = TUNING[i];
+    svg.appendChild(t);
+  }
+
+  // target dot
+  if (target) {
+    const p = sPos(target.string);
+    // fret 0 = open string: dot just above nut; else centered between wires
+    const q = target.fret === 0 ? nutPad - 16 : fPos(target.fret) - fretGap / 2;
+    const dot = el("circle", vertical
+      ? {cx: p, cy: q, r: 12, fill: "#e05d44", stroke: "#fff", "stroke-width": 2}
+      : {cx: q, cy: p, r: 12, fill: "#e05d44", stroke: "#fff", "stroke-width": 2});
+    dot.id = "dot";
+    svg.appendChild(dot);
+  }
+}
+
+function scrollToDot() {
+  const wrap = document.getElementById("board-wrap");
+  const dot = document.getElementById("dot");
+  if (!dot) return;
+  const q = target.fret === 0 ? 0 : 34 + target.fret * (vertical ? 52 : 64);
+  if (vertical) wrap.scrollTop = Math.max(0, q - wrap.clientHeight / 2);
+  else wrap.scrollLeft = Math.max(0, q - wrap.clientWidth / 2);
+}
+
+// --- quiz logic ---
+function nextNote() {
+  let n;
+  do {
+    n = {string: Math.floor(Math.random()*6), fret: Math.floor(Math.random()*(FRETS+1))};
+  } while (target && n.string === target.string && n.fret === target.fret);
+  target = n;
+  drawBoard();
+  scrollToDot();
+  noteStart = performance.now();
+  updateProgress();
+}
+
+function updateProgress() {
+  document.getElementById("progress").textContent =
+    roundLen === Infinity ? (done + 1) : `${done + 1}/${roundLen}`;
+  document.getElementById("misses").textContent = misses;
+}
+
+function tick() {
+  const ms = totalMs + (noteStart ? performance.now() - noteStart : 0);
+  document.getElementById("timer").textContent = (ms/1000).toFixed(1) + "s";
+}
+
+function guess(note, btn) {
+  if (locked || !target) return;
+  if (note === noteAt(target.string, target.fret)) {
+    locked = true;
+    totalMs += performance.now() - noteStart;
+    noteStart = 0;
+    done++;
+    btn.classList.add("right");
+    setTimeout(() => {
+      btn.classList.remove("right");
+      locked = false;
+      if (done >= roundLen) endRound();
+      else nextNote();
+    }, 350);
+  } else {
+    misses++;
+    document.getElementById("misses").textContent = misses;
+    btn.classList.add("wrong");
+    setTimeout(() => btn.classList.remove("wrong"), 350);
+  }
+}
+
+function endRound() {
+  target = null;
+  drawBoard();
+  clearInterval(timerId);
+  tick();
+  document.getElementById("bank").classList.add("hidden");
+  document.getElementById("s-notes").textContent = done;
+  document.getElementById("s-misses").textContent = misses;
+  document.getElementById("s-total").textContent = (totalMs/1000).toFixed(1) + "s";
+  document.getElementById("s-avg").textContent = (totalMs/done/1000).toFixed(1) + "s";
+  document.getElementById("summary").style.display = "block";
+}
+
+function startRound() {
+  const v = document.getElementById("mode").value;
+  roundLen = v === "inf" ? Infinity : +v;
+  done = 0; misses = 0; totalMs = 0; locked = false; target = null;
+  document.getElementById("summary").style.display = "none";
+  document.getElementById("bank").classList.remove("hidden");
+  clearInterval(timerId);
+  timerId = setInterval(tick, 100);
+  nextNote();
+  tick();
+}
+
+// --- setup ---
+const bank = document.getElementById("bank");
+for (const n of NOTES) {
+  const b = document.createElement("button");
+  b.innerHTML = (LABELS[n] || n).replace("/", "<br>");
+  b.addEventListener("click", () => guess(n, b));
+  bank.appendChild(b);
+}
+
+document.getElementById("mode").addEventListener("change", startRound);
+document.getElementById("restart").addEventListener("click", startRound);
+document.getElementById("again").addEventListener("click", startRound);
+window.addEventListener("resize", () => { drawBoard(); scrollToDot(); });
+
+startRound();
+</script>
+</body>
+</html>

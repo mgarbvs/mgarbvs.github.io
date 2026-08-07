@@ -110,6 +110,11 @@
     <option value="10">10 notes</option>
     <option value="inf">Infinite</option>
   </select>
+  <label for="range">Frets:</label>
+  <select id="range">
+    <option value="26">All</option>
+    <option value="12">First 12</option>
+  </select>
   <button class="ctl" id="restart">Restart</button>
 </div>
 
@@ -136,7 +141,7 @@
 const NOTES = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"];
 const LABELS = {"A#":"A♯/B♭","C#":"C♯/D♭","D#":"D♯/E♭","F#":"F♯/G♭","G#":"G♯/A♭"};
 const TUNING = ["E","A","D","G","B","E"]; // low to high
-const FRETS = 26;
+let FRETS = 26;
 const MARKERS = [3,5,7,9,12,15,17,19,21,24];
 
 function noteAt(stringIdx, fret) {
@@ -184,6 +189,7 @@ function drawBoard() {
 
   // fret markers
   for (const m of MARKERS) {
+    if (m > FRETS) continue;
     const mid = fPos(m) - fretGap / 2;
     const c = (across) / 2 + (vertical ? 0 : (H - across) / 2);
     const dots = m % 12 === 0 ? [-stringGap, stringGap] : [0];
@@ -307,6 +313,7 @@ function endRound() {
 function startRound() {
   const v = document.getElementById("mode").value;
   roundLen = v === "inf" ? Infinity : +v;
+  FRETS = +document.getElementById("range").value;
   done = 0; misses = 0; totalMs = 0; locked = false; target = null;
   document.getElementById("summary").style.display = "none";
   document.getElementById("bank").classList.remove("hidden");
@@ -326,6 +333,7 @@ for (const n of NOTES) {
 }
 
 document.getElementById("mode").addEventListener("change", startRound);
+document.getElementById("range").addEventListener("change", startRound);
 document.getElementById("restart").addEventListener("click", startRound);
 document.getElementById("again").addEventListener("click", startRound);
 window.addEventListener("resize", () => { drawBoard(); scrollToDot(); });

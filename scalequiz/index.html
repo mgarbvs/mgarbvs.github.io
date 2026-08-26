@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Scale Note Quiz</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #1a1d23;
+    color: #e8e6e3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    min-height: 100dvh;
+  }
+  h1 { font-size: 1.15rem; font-weight: 600; margin-bottom: 8px; }
+
+  #controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  select, button.ctl {
+    background: #2a2e37;
+    color: #e8e6e3;
+    border: 1px solid #444a57;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+  }
+  #stats {
+    display: flex;
+    gap: 16px;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    color: #a8adb8;
+    font-variant-numeric: tabular-nums;
+  }
+  #stats b { color: #e8e6e3; }
+
+  #key-label {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 8px 0 14px;
+  }
+
+  #track {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 440px;
+  }
+  #track .deg {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: #2a2e37;
+    border: 1px solid #444a57;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #6a6f7a;
+  }
+  #track .deg.done { background: #2c6e3f; border-color: #3a9; color: #e8e6e3; }
+  #track .deg.current { border-color: #e05d44; color: #e8e6e3; }
+
+  #bank {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 440px;
+  }
+  #bank button {
+    background: #2a2e37;
+    color: #e8e6e3;
+    border: 1px solid #444a57;
+    border-radius: 10px;
+    padding: 14px 4px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+    line-height: 1.2;
+  }
+  #bank button:active { background: #3a3f4b; }
+  #bank button.wrong { background: #7a2c2c; border-color: #a33; animation: shake .25s; }
+  #bank button.right { background: #2c6e3f; border-color: #3a9; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  #summary {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+    background: #2a2e37;
+    border-radius: 12px;
+    padding: 20px 28px;
+  }
+  #summary h2 { font-size: 1.1rem; margin-bottom: 10px; }
+  #summary p { margin: 4px 0; color: #a8adb8; }
+  #summary b { color: #e8e6e3; }
+  #summary button { margin-top: 14px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<h1>🎵 Scale Note Quiz</h1>
+
+<div id="controls">
+  <label for="scaleType">Scale:</label>
+  <select id="scaleType">
+    <option value="major">Major</option>
+    <option value="minor">Minor</option>
+    <option value="both" selected>Both (random)</option>
+  </select>
+  <label for="mode">Round:</label>
+  <select id="mode">
+    <option value="3" selected>3 scales</option>
+    <option value="5">5 scales</option>
+    <option value="10">10 scales</option>
+    <option value="inf">Infinite</option>
+  </select>
+  <button class="ctl" id="restart">Restart</button>
+</div>
+
+<div id="stats">
+  <span>Scale <b id="progress">1</b></span>
+  <span>Misses <b id="misses">0</b></span>
+  <span>⏱ <b id="timer">0.0s</b></span>
+</div>
+
+<div id="key-label"></div>
+<div id="track"></div>
+
+<div id="bank"></div>
+
+<div id="summary">
+  <h2>Round complete!</h2>
+  <p>Scales: <b id="s-scales"></b></p>
+  <p>Misses: <b id="s-misses"></b></p>
+  <p>Total time: <b id="s-total"></b></p>
+  <p>Avg per scale: <b id="s-avg"></b></p>
+  <button class="ctl" id="again">Play again</button>
+</div>
+
+<script>
+const NOTES = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"];
+const LABELS = {"A#":"A♯/B♭","C#":"C♯/D♭","D#":"D♯/E♭","F#":"F♯/G♭","G#":"G♯/A♭"};
+const INTERVALS = { major: [0,2,4,5,7,9,11], minor: [0,2,3,5,7,8,10] };
+
+function scaleNotes(rootIdx, type) {
+  return INTERVALS[type].map(i => NOTES[(rootIdx + i) % 12]);
+}
+
+// --- state ---
+let scaleType = "both";
+let roundLen = 3;
+let key = null;       // {root, type, notes}
+let degree = 0;       // index into key.notes, 0-6
+let scalesDone = 0, misses = 0, totalMs = 0;
+let scaleStart = 0, timerId = null, locked = false;
+
+function pickKeyType() {
+  if (scaleType === "both") return Math.random() < 0.5 ? "major" : "minor";
+  return scaleType;
+}
+
+function nextScale() {
+  const rootIdx = Math.floor(Math.random() * 12);
+  const type = pickKeyType();
+  key = { root: NOTES[rootIdx], type, notes: scaleNotes(rootIdx, type) };
+  degree = 0;
+  scaleStart = performance.now();
+  render();
+}
+
+function render() {
+  document.getElementById("key-label").textContent =
+    `${LABELS[key.root] || key.root} ${key.type} — note ${degree + 1} of 7`;
+  document.getElementById("progress").textContent =
+    roundLen === Infinity ? (scalesDone + 1) : `${scalesDone + 1}/${roundLen}`;
+
+  const track = document.getElementById("track");
+  track.innerHTML = "";
+  for (let i = 0; i < 7; i++) {
+    const d = document.createElement("div");
+    d.className = "deg" + (i < degree ? " done" : i === degree ? " current" : "");
+    d.textContent = i < degree ? (LABELS[key.notes[i]] || key.notes[i]).split("/")[0] : (i + 1);
+    track.appendChild(d);
+  }
+}
+
+function tick() {
+  const ms = scaleStart ? performance.now() - scaleStart : 0;
+  document.getElementById("timer").textContent = (ms/1000).toFixed(1) + "s";
+}
+
+function guess(note, btn) {
+  if (locked || !key) return;
+  if (note === key.notes[degree]) {
+    locked = true;
+    btn.classList.add("right");
+    setTimeout(() => {
+      btn.classList.remove("right");
+      locked = false;
+      degree++;
+      if (degree >= 7) {
+        totalMs += performance.now() - scaleStart;
+        scaleStart = 0;
+        scalesDone++;
+        if (scalesDone >= roundLen) endRound();
+        else nextScale();
+      } else {
+        render();
+      }
+    }, 350);
+  } else {
+    misses++;
+    document.getElementById("misses").textContent = misses;
+    btn.classList.add("wrong");
+    setTimeout(() => btn.classList.remove("wrong"), 350);
+  }
+}
+
+function endRound() {
+  key = null;
+  clearInterval(timerId);
+  tick();
+  document.getElementById("bank").classList.add("hidden");
+  document.getElementById("track").classList.add("hidden");
+  document.getElementById("key-label").textContent = "";
+  document.getElementById("s-scales").textContent = scalesDone;
+  document.getElementById("s-misses").textContent = misses;
+  document.getElementById("s-total").textContent = (totalMs/1000).toFixed(1) + "s";
+  document.getElementById("s-avg").textContent = (totalMs/scalesDone/1000).toFixed(1) + "s";
+  document.getElementById("summary").style.display = "block";
+}
+
+function startRound() {
+  const v = document.getElementById("mode").value;
+  roundLen = v === "inf" ? Infinity : +v;
+  scaleType = document.getElementById("scaleType").value;
+  scalesDone = 0; misses = 0; totalMs = 0; locked = false; key = null;
+  document.getElementById("misses").textContent = 0;
+  document.getElementById("summary").style.display = "none";
+  document.getElementById("bank").classList.remove("hidden");
+  document.getElementById("track").classList.remove("hidden");
+  clearInterval(timerId);
+  timerId = setInterval(tick, 100);
+  nextScale();
+  tick();
+}
+
+// --- setup ---
+const bank = document.getElementById("bank");
+for (const n of NOTES) {
+  const b = document.createElement("button");
+  b.innerHTML = (LABELS[n] || n).replace("/", "<br>");
+  b.addEventListener("click", () => guess(n, b));
+  bank.appendChild(b);
+}
+
+document.getElementById("mode").addEventListener("change", startRound);
+document.getElementById("scaleType").addEventListener("change", startRound);
+document.getElementById("restart").addEventListener("click", startRound);
+document.getElementById("again").addEventListener("click", startRound);
+
+startRound();
+</script>
+</body>
+</html>

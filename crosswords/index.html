@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crosswords — Michael Garbus</title>
+  <link rel="stylesheet" href="/fonts.css" />
+  <style>
+    body {
+      background-color: #2c3e50;
+      color: #fff;
+      font-family: Latin Modern, Georgia, Cambria, "Times New Roman", Times, serif;
+      padding: 60px 20px;
+      max-width: 1100px; /* fonts.css caps body at 80ch, too narrow for grid + clues */
+      text-align: center;
+    }
+    a { color: #fff; }
+    h1 { font-size: 42px; margin-bottom: 40px; }
+    .back { display: block; margin-bottom: 40px; opacity: 0.7; }
+    .puzzle-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .puzzle-card {
+      display: block;
+      width: 260px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+    .puzzle-card:hover { background-color: rgba(255,255,255,0.08); }
+    .puzzle-title { font-size: 24px; }
+    .puzzle-meta { font-size: 15px; opacity: 0.6; margin-top: 8px; font-style: italic; }
+    .puzzle-card.active { background-color: rgba(255,255,255,0.15); }
+    #solver { display: none; max-width: 1100px; margin: 40px auto 0; }
+    #solver h2 { font-size: 30px; margin-bottom: 4px; }
+    #solver .puzzle-meta { margin-bottom: 16px; }
+    #solver select { font: inherit; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; }
+    #solver option { color: #000; }
+    #solver iframe { width: 100%; height: min(700px, 100svh); border: none; border-radius: 8px; background: #fff; }
+  </style>
+</head>
+<body>
+  <a class="back" href="/">← michaelgarbus.com</a>
+  <h1>Crosswords</h1>
+  <div class="puzzle-row">
+    <a class="puzzle-card" href="#man-of-steel">
+      <div class="puzzle-title">Man of Steel</div>
+      <div class="puzzle-meta">15×15</div>
+    </a>
+    <a class="puzzle-card" href="#dolla-dolla-bills-yall">
+      <div class="puzzle-title">Dolla' Dolla' Bills Y'all</div>
+      <div class="puzzle-meta">14×15</div>
+    </a>
+  </div>
+  <div id="solver">
+    <h2></h2>
+    <div class="puzzle-meta">
+      <a download>download .puz</a> ·
+      <label>theme
+        <select id="theme">
+          <option value="">Classic</option>
+          <option value="navy">Navy</option>
+          <option value="slate">Slate</option>
+          <option value="forest">Forest</option>
+          <option value="charcoal">Charcoal</option>
+          <option value="plum">Plum</option>
+        </select>
+      </label>
+    </div>
+    <iframe title="Crossword solver"></iframe>
+  </div>
+  <script>
+    // Each card links to #slug; the solver loads inline below instead of navigating away.
+    function show() {
+      const slug = location.hash.slice(1);
+      const card = document.querySelector(`.puzzle-card[href="#${CSS.escape(slug)}"]`);
+      document.querySelectorAll('.puzzle-card').forEach(c => c.classList.toggle('active', c === card));
+      const solver = document.getElementById('solver');
+      if (!card) { solver.style.display = 'none'; return; }
+      const file = `puzzles/${slug}.puz`;
+      solver.querySelector('h2').textContent = card.querySelector('.puzzle-title').textContent;
+      solver.querySelector('a').href = file;
+      solver.querySelector('iframe').src = `solve.html?file=${file}`;
+      solver.style.display = 'block';
+      solver.scrollIntoView({ behavior: 'smooth' });
+    }
+    // Theme is stored where solve.html reads it on load; also applied live to the open solver.
+    const themeSelect = document.getElementById('theme');
+    try { themeSelect.value = localStorage.getItem('cw-theme') || ''; } catch {}
+    themeSelect.addEventListener('change', () => {
+      try { localStorage.setItem('cw-theme', themeSelect.value); } catch {}
+      const body = document.querySelector('#solver iframe').contentDocument?.body;
+      if (!body) return;
+      body.classList.remove(...[...body.classList].filter(c => c.startsWith('theme-')));
+      if (themeSelect.value) body.classList.add('theme-' + themeSelect.value);
+    });
+    addEventListener('hashchange', show);
+    show();
+  </script>
+</body>
+</html>

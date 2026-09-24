@@ -1,0 +1,649 @@
+/**
+Copyright (c) 2025, Crossword Nexus & Crossweird LLC
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**/
+
+var gCrossword;
+
+$(document).ready(function() {
+  let initialWindowHeight = window.innerHeight;
+  setCSSViewportHeight();
+  // Listen to visualViewport resize events
+  window.visualViewport?.addEventListener('resize', () => {
+    setCSSViewportHeight();
+    detectKeyboardAndResize(); // you already have this function
+  });
+
+  // Listen to orientation changes
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+      if (gCrossword?.syncTopTextWidth) {
+        gCrossword.syncTopTextWidth();
+      }
+      setCSSViewportHeight();
+    }, 300);
+  });
+
+  const isMobile = CrosswordShared.isMobileDevice();
+  const crosswordRoot = document.querySelector('.crossword');
+
+  if (isMobile && crosswordRoot) {
+    crosswordRoot.classList.add('mobile');
+    document.body.classList.add('mobile-mode');
+
+    // Viewport handlers
+    window.visualViewport?.addEventListener('resize', detectKeyboardAndResize);
+    window.addEventListener('resize', detectKeyboardAndResize);
+    window.visualViewport?.addEventListener('resize', () => {
+      setCSSViewportHeight();
+      detectKeyboardAndResize();
+    });
+
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        setCSSViewportHeight();
+      }, 300);
+    });
+  }
+
+  function setCSSViewportHeight() {
+    if (!window.visualViewport) return;
+
+    const vh = window.visualViewport.height + window.visualViewport.offsetTop;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }
+
+  function updateRebusKeyUI(active) {
+    const rebusKey = document.querySelector('.cw-key-rebus, .rebus-key');
+    if (rebusKey) {
+      rebusKey.textContent = active ? 'DONE' : 'REBUS';
+      rebusKey.classList.toggle('active', Boolean(active));
+    }
+  }
+
+  function rebuildKeyboard() {
+    const wrapper = document.querySelector('.keyboard-wrapper-placeholder');
+    if (!wrapper) return;
+    const oldKeyboard = wrapper.querySelector('#custom-keyboard');
+    if (oldKeyboard) oldKeyboard.remove();
+
+    const newKeyboard = createCustomKeyboard();
+
+    wrapper.appendChild(newKeyboard);
+    wrapper.style.height = `${newKeyboard.offsetHeight}px`;
+  }
+
+  function rebuildKeyboardAndPositionDrawer() {
+    rebuildKeyboard();
+  }
+
+  function detectKeyboardAndResize() {
+    setTimeout(() => {
+      const currentHeight = window.innerHeight;
+      const keyboardOpen = currentHeight < initialWindowHeight - 150;
+
+      document.body.classList.toggle('keyboard-visible', keyboardOpen);
+    }, 50);
+  }
+
+  // Load puzzle and optional config from URL
+  const params = CrosswordShared.getCrosswordParams();
+
+  gCrossword = CrosswordNexus.createCrossword($('div.crossword'), params);
+  if (gCrossword) {
+    window.gCrossword = gCrossword;
+    gCrossword.onRebusModeChange = updateRebusKeyUI;
+  }
+  $('div.crossword').on('rebusModeChange', (e, data) => {
+    updateRebusKeyUI(data?.active);
+  });
+  if (gCrossword?.syncTopTextWidth) {
+    window.gCrossword.syncTopTextWidth = gCrossword.syncTopTextWidth.bind(gCrossword);
+  }
+  if (isMobile && crosswordRoot) {
+    const tryWrapLayout = () => {
+      const canvas = document.querySelector('.cw-canvas');
+      const buttons = document.querySelector('.cw-buttons-holder');
+      if (buttons && buttons.children.length) {
+        const allButtons = Array.from(buttons.children);
+
+        // Match by text content – you can refine this to use classes if needed
+        const file = allButtons.find(btn => btn.textContent.includes('File'));
+        const check = allButtons.find(btn => btn.textContent.includes('Check'));
+        const reveal = allButtons.find(btn => btn.textContent.includes('Reveal'));
+        const settings = allButtons.find(btn => btn.textContent.includes('Settings'));
+        const done = allButtons.find(btn => btn.textContent.includes("I'm done!"));
+        const timer = allButtons.find(btn => btn.textContent.match(/[\d:]+/)); // crude match for timer
+
+        // Only reflow if all buttons were found (except File/Reveal/Check which might be hidden)
+        if (settings && timer) {
+
+          const row1 = document.createElement('div');
+          row1.className = 'cw-buttons-row';
+
+          if (file && file.style.display !== 'none') row1.append(file);
+          if (check && check.style.display !== 'none') row1.append(check);
+          if (reveal && reveal.style.display !== 'none') row1.append(reveal);
+
+          const row2 = document.createElement('div');
+          row2.className = 'cw-buttons-row';
+          row2.append(settings, timer);
+          if (done) row2.append(done);          // Clear and re-append
+          buttons.innerHTML = '';
+          buttons.append(row1, row2);
+        }
+      }
+      const content = document.querySelector('.cw-content');
+      const clues = document.querySelector('.cw-clues-holder');
+      const extraCluesHolder = document.querySelector('.cw-extra-clues-button-holder');
+      let drawerOpen = false;
+      let drawer;
+      let touchStartY = null;
+
+      // Ensure we wait for core elements AND the extra clues holder if the puzzle has them
+      const hasFakeClues = gCrossword.clueGroups && gCrossword.clueGroups.some(g => g.isFake);
+      if (!canvas || !buttons || !content || !clues || !clues.querySelector(".cw-clues, .cw-clues-top, .cw-clues-bottom") || (hasFakeClues && !extraCluesHolder)) {
+        return setTimeout(tryWrapLayout, 50);
+      }
+
+      // Safe to remove .cw-grid AFTER canvas is grabbed
+      const grid = document.querySelector('.cw-grid');
+      if (grid) grid.remove();
+
+      // Build wrapper
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cw-grid-wrapper';
+
+      // Append the canvas (grid)
+      wrapper.appendChild(canvas);
+
+      // NEW: Create clues container
+      const mobileClues = document.createElement('div');
+      mobileClues.className = 'cw-mobile-clues-holder';
+
+      // Move top and bottom clues into this container
+      const clueBlocks = Array.from(clues.querySelectorAll(".cw-clues"));
+
+      if (clueBlocks.length) {
+        clueBlocks.forEach((block) => mobileClues.appendChild(block));
+      }
+
+      // Create container to hold grid + clues side by side
+      const gridClueWrapper = document.createElement('div');
+      gridClueWrapper.className = 'cw-grid-clue-wrapper';
+
+      // Append the canvas (grid)
+      gridClueWrapper.appendChild(canvas);
+
+      // Use the already-declared mobileClues
+      mobileClues.className = 'cw-mobile-clues-side'; // update class name for styling
+
+      // Append clues to the right of the grid
+      gridClueWrapper.appendChild(mobileClues);
+
+      // Append grid + clues layout into the main wrapper
+      wrapper.appendChild(gridClueWrapper);
+
+      // Move extra clues holder if it exists
+      if (extraCluesHolder) {
+        wrapper.appendChild(extraCluesHolder);
+      }
+
+      // Use delegated events for clue clicks
+      $(mobileClues).on('click', '.cw-clue', (e) => {
+        const target = $(e.currentTarget);
+        const clue = target.data('clue');
+        const wordId = target.data('word');
+        const word = gCrossword.words[wordId];
+
+        if (gCrossword.fakeclues) {
+          if (clue) {
+            clue.fakeClueCompleted = !Boolean(clue.fakeClueCompleted);
+            gCrossword.updateClueAppearance(clue, target);
+          }
+          return;
+        }
+
+        if (!word) return;
+
+        const cell = word.getFirstEmptyCell() || word.getFirstCell();
+        if (cell) {
+          gCrossword.setActiveWord(word);
+          if (gCrossword.clueGroups[gCrossword.activeClueGroupIndex].id !== target.data('clues')) {
+            gCrossword.changeActiveClues();
+          }
+          gCrossword.setActiveCell(cell);
+
+          // ✅ Manually trigger clue highlighting
+          gCrossword.clueGroups.forEach(group => {
+            // The first param (`isInactive`) is true for all groups except the active one
+            const isInactive = group !== this.clueGroups[this.activeClueGroupIndex];
+            if (typeof group.markActive === 'function') {
+              group.markActive(cell.x, cell.y, isInactive, gCrossword.fakeclues);
+            }
+          });
+
+          gCrossword.renderCells();
+        }
+      });
+
+      // Create drawer container
+      const buttonWrapper = document.createElement('div');
+      buttonWrapper.className = 'cw-buttons-drawer';
+
+      // Add drawer to layout before inserting buttons
+      wrapper.appendChild(buttonWrapper);
+
+      // THEN move buttons inside the drawer
+      buttonWrapper.appendChild(buttons);
+
+      // Create the handle and append
+      const handle = document.createElement('div');
+      handle.className = 'cw-buttons-handle';
+
+      // Add drawer to wrapper
+      wrapper.appendChild(handle);
+      wrapper.appendChild(buttonWrapper);
+
+      // Create keyboard wrapper and append
+      const keyboardWrapper = document.createElement('div');
+      keyboardWrapper.className = 'keyboard-wrapper-placeholder';
+      wrapper.appendChild(keyboardWrapper);
+
+      // Insert everything before clues
+      content.insertBefore(wrapper, clues);
+
+      // Rebuild keyboard
+      rebuildKeyboardAndPositionDrawer();
+
+      // === Rebus via long-press on the grid ===
+      (function enableRebusLongPressOnCell() {
+        // Your grid is the canvas with id 'cw-puzzle-grid' (fallback to .cw-canvas)
+        const grid = document.getElementById('cw-puzzle-grid') || document.querySelector('.cw-canvas');
+        if (!grid || grid.dataset.rebusLpAttached === '1') return; // guard against double binding
+        grid.dataset.rebusLpAttached = '1';
+
+        const LP_MS = 450; // long-press threshold
+        const MAX_MOVE = 8; // cancel if finger moves too much (px)
+        let timer = null;
+        let startX = 0,
+          startY = 0;
+        let targetCell = null;
+        let isLongPressTriggered = false;
+
+        function findCellFromEvent(e) {
+          if (!gCrossword) return null;
+          const target = e.target;
+          if (target && typeof target.getAttribute === 'function') {
+            const x = parseInt(target.getAttribute('data-x'), 10);
+            const y = parseInt(target.getAttribute('data-y'), 10);
+            if (!isNaN(x) && !isNaN(y)) {
+              return gCrossword.getCell?.(x, y) || null;
+            }
+          }
+          const closest = target?.closest?.('[data-x]');
+          if (closest && typeof closest.getAttribute === 'function') {
+            const x = parseInt(closest.getAttribute('data-x'), 10);
+            const y = parseInt(closest.getAttribute('data-y'), 10);
+            if (!isNaN(x) && !isNaN(y)) {
+              return gCrossword.getCell?.(x, y) || null;
+            }
+          }
+          return gCrossword.selected_cell || null;
+        }
+
+        function triggerRebusLongPress() {
+          if (!gCrossword) return;
+          const cell = targetCell || gCrossword.selected_cell;
+          if (!cell || cell.empty || cell.type === 'block') return;
+
+          isLongPressTriggered = true;
+
+          const isSameCell = gCrossword.selected_cell &&
+            gCrossword.selected_cell.x === cell.x &&
+            gCrossword.selected_cell.y === cell.y;
+
+          if (!isSameCell) {
+            if (!gCrossword.diagramless_mode) {
+              const groups = gCrossword.clueGroups || [];
+              const n = groups.length;
+              let newActiveWord = null;
+              let newGroupIndex = gCrossword.activeClueGroupIndex ?? 0;
+              if (groups[newGroupIndex]) {
+                newActiveWord = groups[newGroupIndex].getMatchingWord(cell.x, cell.y, false);
+              }
+              if (!newActiveWord && n) {
+                for (let offset = 1; offset < n; offset++) {
+                  const i = (newGroupIndex + offset) % n;
+                  const match = groups[i]?.getMatchingWord(cell.x, cell.y, false);
+                  if (match) {
+                    newActiveWord = match;
+                    newGroupIndex = i;
+                    break;
+                  }
+                }
+              }
+              if (newActiveWord) {
+                gCrossword.activeClueGroupIndex = newGroupIndex;
+                gCrossword.setActiveWord(newActiveWord);
+              }
+            }
+            gCrossword.setActiveCell(cell);
+            gCrossword.enterRebusMode?.();
+          } else {
+            if (gCrossword.toggleRebusMode) {
+              gCrossword.toggleRebusMode();
+            } else {
+              gCrossword.enterRebusMode?.();
+            }
+          }
+        }
+
+        function clearTimer() {
+          if (timer) {
+            clearTimeout(timer);
+            timer = null;
+          }
+        }
+
+        grid.addEventListener('pointerdown', (e) => {
+          isLongPressTriggered = false;
+          targetCell = findCellFromEvent(e);
+          if (!targetCell || targetCell.empty || targetCell.type === 'block') return;
+          startX = e.clientX;
+          startY = e.clientY;
+          clearTimer();
+          timer = setTimeout(triggerRebusLongPress, LP_MS);
+        });
+
+        grid.addEventListener('pointermove', (e) => {
+          if (!timer) return;
+          const dx = Math.abs(e.clientX - startX);
+          const dy = Math.abs(e.clientY - startY);
+          if (dx > MAX_MOVE || dy > MAX_MOVE) clearTimer(); // treat as scroll/drag, cancel LP
+        });
+
+        grid.addEventListener('pointerup', () => {
+          clearTimer();
+          if (isLongPressTriggered) {
+            setTimeout(() => {
+              isLongPressTriggered = false;
+            }, 300);
+          }
+        });
+
+        grid.addEventListener('pointerleave', clearTimer);
+        grid.addEventListener('pointercancel', () => {
+          clearTimer();
+          isLongPressTriggered = false;
+        });
+
+        grid.addEventListener(
+          'click',
+          (e) => {
+            if (isLongPressTriggered) {
+              e.preventDefault();
+              e.stopPropagation();
+              isLongPressTriggered = false;
+            }
+          },
+          true
+        );
+
+        grid.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+        });
+      })();
+
+
+      // Drawer toggle logic
+      drawer = buttonWrapper;
+      drawerOpen = false; // starts visible
+      drawer.classList.remove('open'); // make sure it's closed on load
+      // Immediately hide the drawer (force rendering to catch transform)
+      requestAnimationFrame(() => {
+        drawer.classList.remove('open');
+      });
+
+      // Click to toggle
+      handle.addEventListener('click', () => {
+        drawerOpen = !drawerOpen;
+        drawer.classList.toggle('open', drawerOpen);
+      });
+
+      // Swipe gesture
+      touchStartY = null;
+      handle.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+      });
+      handle.addEventListener('touchend', (e) => {
+        if (touchStartY === null) return;
+        const deltaY = touchStartY - e.changedTouches[0].clientY;
+        if (deltaY > 30) {
+          drawerOpen = true;
+        } else if (deltaY < -30) {
+          drawer.classList.remove('open');
+          drawerOpen = false;
+        }
+        touchStartY = null;
+      });
+      setTimeout(() => {
+        const firstWord = gCrossword.clueGroups[gCrossword.activeClueGroupIndex].getFirstWord();
+        gCrossword.setActiveWord(firstWord);
+        gCrossword.setActiveCell(firstWord.getFirstCell());
+        gCrossword.renderCells();
+          const clueBar = document.querySelector('.cw-top-text-wrapper');
+          if (clueBar) {
+            clueBar.style.width = '100%';
+          }
+      }, 50);
+
+      setupKeyboardToggleButton();
+      const headerEl = document.querySelector('.cw-header');
+      if (headerEl) {
+        const headerObserver = new MutationObserver(() => {
+          setupKeyboardToggleButton();
+        });
+        headerObserver.observe(headerEl, { childList: true });
+      }
+    };
+
+    function setupKeyboardToggleButton() {
+      const header = document.querySelector('.cw-header');
+      const root = document.querySelector('.crossword');
+      if (!header || !root) return;
+      if (header.querySelector('.cw-button-keyboard-toggle')) return;
+
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'cw-button cw-button-keyboard-toggle';
+
+      const updateToggleBtnText = (isHidden) => {
+        toggleBtn.innerHTML = `<span class="cw-button-icon">⌨️</span> <span class="cw-keyboard-toggle-text">${isHidden ? 'Show Keyboard' : 'Hide Keyboard'}</span>`;
+      };
+
+      const isTablet = window.innerWidth >= 768;
+      let isHidden = isTablet && localStorage.getItem('cw_hide_virtual_keyboard') === '1';
+      if (isHidden) {
+        root.classList.add('keyboard-hidden');
+      }
+      updateToggleBtnText(isHidden);
+
+      toggleBtn.addEventListener('click', () => {
+        isHidden = !root.classList.contains('keyboard-hidden');
+        root.classList.toggle('keyboard-hidden', isHidden);
+        updateToggleBtnText(isHidden);
+        try {
+          localStorage.setItem('cw_hide_virtual_keyboard', isHidden ? '1' : '0');
+        } catch (e) {}
+
+        setTimeout(() => {
+          if (gCrossword?.renderCells) {
+            gCrossword.renderCells();
+          }
+          if (gCrossword?.windowResized) {
+            gCrossword.windowResized();
+          }
+          window.dispatchEvent(new Event('resize'));
+        }, 100);
+      });
+
+      const spacer = header.querySelector('.cw-flex-spacer');
+      if (spacer) {
+        header.insertBefore(toggleBtn, spacer);
+      } else {
+        header.appendChild(toggleBtn);
+      }
+    }
+
+    setTimeout(tryWrapLayout, 300);
+  }
+  console.log('Is mobile?', isMobile, 'Classes:', document.querySelector('.crossword')?.className);
+});
+
+function createCustomKeyboard() {
+  const keyboard = document.createElement('div');
+  keyboard.id = 'custom-keyboard';
+  keyboard.className = 'custom-keyboard';
+
+  const letterRows = [
+    'QWERTYUIOP'.split(''),
+    'ASDFGHJKL'.split(''),
+    'ZXCVBNM'.split('')
+  ];
+
+  const rows = letterRows;
+
+  rows.forEach((row, rowIndex) => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'custom-keyboard-row';
+
+    // ── TOP ROW: ⬅️ ... letters ... ➡️
+    if (rowIndex === 0) {
+      const leftArrow = document.createElement('div');
+      leftArrow.className = 'custom-key wide-key cw-key-left';
+      leftArrow.textContent = '<';
+      leftArrow.addEventListener('click', () => {
+        const skipFilled = gCrossword.config?.tab_key === 'tab_skip';
+        gCrossword.moveToNextWord(true, skipFilled); // ← previous word
+      });
+      rowDiv.appendChild(leftArrow);
+    }
+
+    // ── BOTTOM ROW: REBUS toggle on the far left
+    if (rowIndex === 2) {
+      const rebusKey = document.createElement('div');
+      rebusKey.className = 'custom-key rebus-key cw-key-rebus';
+      rebusKey.dataset.key = 'REBUS';
+      const isRebus = Boolean(gCrossword?.rebus_mode);
+      rebusKey.textContent = isRebus ? 'DONE' : 'REBUS';
+      if (isRebus) {
+        rebusKey.classList.add('active');
+      }
+      rebusKey.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!gCrossword) return;
+        if (gCrossword.rebus_mode) {
+          gCrossword.exitRebusMode(true, true);
+        } else {
+          gCrossword.enterRebusMode();
+        }
+      });
+      rowDiv.appendChild(rebusKey);
+    }
+
+    // main keys for the row
+    row.forEach(letter => {
+      const key = document.createElement('div');
+      key.className = 'custom-key';
+      key.textContent = letter;
+      key.addEventListener('click', () => {
+        if (gCrossword?.hidden_input) {
+          gCrossword.hiddenInputChanged(letter);
+        }
+      });
+      rowDiv.appendChild(key);
+    });
+
+    if (rowIndex === 0) {
+      const rightArrow = document.createElement('div');
+      rightArrow.className = 'custom-key wide-key cw-key-right';
+      rightArrow.textContent = '>';
+      rightArrow.addEventListener('click', () => {
+        const skipFilled = gCrossword.config?.tab_key === 'tab_skip';
+        gCrossword.moveToNextWord(false, skipFilled); // → next word
+      });
+      rowDiv.appendChild(rightArrow);
+    }
+
+    if (rowIndex === 2) {
+      // Period key (bottom row)
+      const periodKey = document.createElement('div');
+      periodKey.className = 'custom-key period-key';
+      periodKey.textContent = '.';
+      periodKey.addEventListener('click', () => {
+        if (gCrossword?.hidden_input) {
+          gCrossword.hiddenInputChanged('.');
+        }
+      });
+      rowDiv.appendChild(periodKey);
+
+      // Backspace (bottom row, far right)
+      const backspace = document.createElement('div');
+      backspace.className = 'custom-key backspace-key';
+      backspace.textContent = '⌫';
+
+      let backspaceTimeout;
+      let backspaceInterval;
+      let backspaceHeld = false;
+      let backspaceFired = false;
+
+      function clearBackspaceState() {
+        clearTimeout(backspaceTimeout);
+        clearInterval(backspaceInterval);
+        backspaceHeld = false;
+        backspaceFired = false;
+      }
+
+      function performBackspace() {
+        if (gCrossword) {
+          gCrossword.backspace();
+        }
+      }
+
+      backspace.addEventListener('pointerdown', () => {
+        backspaceHeld = false;
+        backspaceFired = false;
+        backspaceTimeout = setTimeout(() => {
+          backspaceHeld = true;
+          performBackspace();
+          backspaceFired = true;
+          backspaceInterval = setInterval(performBackspace, 120);
+        }, 600);
+      });
+      backspace.addEventListener('pointerup', () => {
+        if (!backspaceFired) performBackspace();
+        clearBackspaceState();
+      });
+      backspace.addEventListener('pointerleave', clearBackspaceState);
+      backspace.addEventListener('pointercancel', clearBackspaceState);
+
+      rowDiv.appendChild(backspace);
+    }
+
+    keyboard.appendChild(rowDiv);
+  });
+
+  console.log('[MOBILE] crossword.mobile.js loaded');
+  return keyboard;
+}

@@ -1,0 +1,67 @@
+/* Site color themes. Each theme sets a few --t-* tokens; the block below maps them
+   onto the solver's variables. Loaded after crossword.shared.css so a theme wins over dark mode.
+   Note: js/crosswords.js is patched so uncolored cells use var(--grid-selected-word-color)
+   instead of a baked-in hex (search "shade_highlight_color=d.color&&"). */
+
+body.theme-navy     { --t-bg: #1e2d4a; --t-paper: #f0e8d5; --t-accent: #daa520; --t-strong: #b8860b; }
+body.theme-slate    { --t-bg: #2c3e50; --t-paper: #f5efe6; --t-accent: #f4a261; --t-strong: #e07a5f; }
+body.theme-forest   { --t-bg: #1a3325; --t-paper: #f5f0e8; --t-accent: #e8a83a; --t-strong: #c9851d; }
+body.theme-charcoal { --t-bg: #252220; --t-paper: #f2ede4; --t-accent: #e74c3c; --t-strong: #c0392b; --t-on-strong: #ffffff; }
+body.theme-plum     { --t-bg: #1e1a2e; --t-paper: #f0f0f0; --t-accent: #6dcfdf; --t-strong: #48b5c4; }
+
+body[class*="theme-"] {
+    --t-soft: color-mix(in srgb, var(--t-accent) 35%, var(--t-paper));
+
+    --main-bg-color: var(--t-bg);
+    --header-bg-color: var(--t-bg);
+    --content-bg-color: var(--t-bg);
+    --main-text-color: var(--t-bg);
+    --copyright-text-color: var(--t-paper);
+
+    --button-bg-color: var(--t-accent);
+    --button-text-color: var(--t-bg);
+    --button-hover-color: var(--t-strong);
+    --button-hover-text-color: var(--t-bg);
+    --button-menu-bg-color: var(--t-paper);
+    --button-menu-text-color: var(--t-bg);
+    --top-text-wrapper-bg-color: var(--t-paper);
+    --top-text-wrapper-text-color: var(--t-bg);
+
+    --clues-holder-bg-color: var(--t-paper);
+    --clue-active-color: var(--t-accent);
+    --clue-active-text-color: var(--t-bg);
+    --clue-passive-color: var(--t-soft);
+    --clue-passive-text-color: var(--t-bg);
+    --clue-hover-color: var(--t-soft);
+    --cluenote-text-color: var(--t-bg);
+    --clue-scrollbar-color-track: var(--t-paper);
+    --clue-scrollbar-color-thumb: var(--t-strong);
+    --clue-scrollbar-color-thumb-hover: var(--t-strong);
+
+    --grid-selected-square-color: var(--t-strong);
+    --grid-selected-square-text-color: var(--t-on-strong, var(--t-bg));
+    --grid-selected-word-color: var(--t-accent);
+    --grid-selected-word-text-color: var(--t-bg);
+    --grid-hilite-color: var(--t-soft);
+    --grid-hilite-text-color: var(--t-bg);
+    --grid-block-color: var(--t-bg);
+    --grid-none-color: #ffffff;
+    --grid-none-text-color: var(--t-bg);
+    --grid-stroke-color: var(--t-bg);
+    --grid-selected-stroke-color: var(--t-bg);
+    --grid-rebus-stroke-color: var(--t-bg);
+    --grid-number-color: var(--t-bg);
+    --grid-letter-color: var(--t-bg);
+
+    --modal-header-bg-color: var(--t-accent);
+    --modal-header-text-color: var(--t-bg);
+    --modal-content-bg-color: var(--t-paper);
+    --modal-text-color: var(--t-bg);
+
+    --keyboard-bg-color: var(--t-bg);
+    --keyboard-button-bg-color: var(--t-paper);
+    --keyboard-button-text-color: var(--t-bg);
+}
+
+/* Header sits on the dark background; everything else sits on paper. */
+body[class*="theme-"] .cw-header { color: var(--t-paper); }

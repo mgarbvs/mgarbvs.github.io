@@ -1,0 +1,581 @@
+/**
+Copyright (c) 2015-2025, Crossword Nexus
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**/
+
+.cw-title,
+.cw-author,
+.cw-copyright {
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cw-title {
+    font-weight: bold;
+}
+.cw-header-separator {
+    flex: 0 0 auto;
+}
+.cw-author {
+    margin-right: 0.5em;
+}
+.cw-copyright {
+    color: var(--copyright-text-color);
+    margin-right: 0.5em;
+}
+
+.cw-content {
+  background: var(--content-bg-gradient, var(--content-bg-color));
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 1px;
+  position: relative;
+}
+
+.cw-grid {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 300px;
+  position: relative;
+  margin-top: 5px;
+}
+
+#cw-puzzle-grid {
+  display: inline-block;
+  width: auto;
+  margin-top: 65px;
+  align-self: center;
+  box-shadow: var(--main-shadow);
+  border-radius: 4px;
+}
+
+#cw-puzzle-grid text {
+  pointer-events: none;
+}
+
+.cw-canvas {
+  display: inline-block;
+  flex: 1 1 auto;
+  min-height: 300px;
+  position: relative;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.cw-clues-holder {
+  background-color: var(--clues-holder-bg-color);
+  display: flex;
+  flex-shrink: 0;
+  max-height: 100%;
+  width: 42%;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-right: 25px;
+  box-shadow: var(--main-shadow);
+  border-radius: 4px;
+  padding-bottom: 10px;
+  /*mask-image: linear-gradient(to bottom, black calc(100% - 15px), transparent 100%);*/
+}
+
+.cw-clues-bottom {
+  margin-right: 3px;
+}
+
+/**
+* Clues
+**/
+.cw-clues-items {
+  font-size: 1em;
+}
+
+/* Custom scrollbar styling */
+/* Chrome, Edge, Safari */
+.cw-clues-items::-webkit-scrollbar {
+  width: 5px;
+}
+
+.cw-clues-items::-webkit-scrollbar-track {
+  background-color: var(--main-bg-color);
+  border-radius: 50px;
+}
+
+.cw-clues-items::-webkit-scrollbar-thumb {
+  /*background-image: linear-gradient(180deg, var(--clue-scrollbar-color-thumb2) 0%, var(--clue-scrollbar-color-thumb1) 99%);*/
+  background-color: var(--clue-scrollbar-color-thumb);
+  border-radius: 50px;
+  transition: scrollbar-color 0.3s ease-out;
+}
+
+.cw-clues-items::-webkit-scrollbar-thumb:hover {
+  background-color: var(--clue-scrollbar-color-thumb)
+}
+
+/* Firefox */
+@supports (-moz-appearance: none) {
+  .cw-clues-items {
+    scrollbar-width: thin;
+    scrollbar-color: var(--clue-scrollbar-color-thumb) var(--main-bg-color);
+  }
+}
+
+/* End custom scrollbar styling */
+.cw-clue {
+  padding: 6px 0px;
+  margin-right: 3px;
+}
+
+/**
+* Utilities
+**/
+.cw-flex-spacer {
+  flex-grow: 1;
+}
+
+/**
+* Size-dependent styles
+* NOTE: We don't use media queries here because we need to base the responsive
+* behavior on the width of the root element, not the width of the overall
+* window.
+**/
+.cw-clues {
+  width: 350px;
+}
+
+.cw-puzzle-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.cw-top-text {
+  align-items: flex-start;
+  display: flex;
+  text-align: left;
+  line-height: 1.2;
+}
+
+/* MOBILE BASE OVERRIDES */
+body.mobile-mode,
+html.mobile-mode {
+  height: 100dvh;
+  overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.crossword.mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.crossword.mobile .cw-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.crossword.mobile .cw-header {
+  display: inline-block;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-size: .8em;
+  margin: 0;
+  background-color: var(--main-bg-color);
+}
+
+.crossword.mobile.cw-header-box {
+  background: var(--header-bg-color);
+  border-radius: 15px;
+  padding: 6px 65px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 5px auto;
+  max-width: fit-content;
+  transition: all 0.3s ease-in-out;
+}
+
+.crossword.mobile .cw-canvas {
+  flex: 1;
+  display: block;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
+}
+
+.crossword.mobile .cw-grid-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.crossword.mobile .cw-grid {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 300px;
+  position: relative;
+}
+
+.cw-cell-number,
+.cw-cell-letter {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.crossword.mobile #cw-puzzle-grid {
+  display: block;
+  width: 95vw;
+  height: auto;
+  max-width: 100%;
+  margin-top: 56px;
+}
+
+.crossword.mobile .cw-buttons-holder {
+  position: relative;
+  height: auto;
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 4px;
+  font-size: 0.75em;
+  background: var(--main-bg-color);
+  z-index: 30;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+/* Smaller mobile buttons */
+.crossword.mobile .cw-button {
+  font-size: 0.75em;
+  padding: 0.35em 0.6em;
+  min-width: 60px;
+  text-align: center;
+}
+
+.crossword.mobile .cw-button-prev-clue,
+.crossword.mobile .cw-button-next-clue {
+  display: inline-flex;
+  min-width: 48px;
+  font-size: 1em;
+}
+
+/* Hide clue list*/
+.crossword.mobile .cw-clues-holder {
+  display: none !important;
+}
+
+.crossword.mobile .cw-keyboard-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--main-bg-color);
+}
+
+.crossword.mobile .custom-keyboard {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--main-bg-color);
+  padding: 6px 4px;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.crossword.mobile .custom-keyboard-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.crossword.mobile .custom-key {
+  flex: 1;
+  margin: 2px;
+  padding: 0.65em 0.5em;
+  text-align: center;
+  font-size: 1.1em;
+  background: var(--button-bg-color);
+  color: var(--button-text-color);
+  border-radius: 6px;
+  user-select: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  max-width: 36px;
+}
+
+.crossword.mobile .wide-key {
+  flex: 1;
+  /* takes up more space */
+  max-width: none;
+}
+
+.crossword.mobile .custom-key:active {
+  background: var(--button-hover-color);
+}
+
+.custom-keyboard {
+  display: block;
+}
+
+.crossword.mobile .cw-hidden-input {
+  position: absolute;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  top: -9999px;
+  left: -9999px;
+  font-size: 0;
+}
+
+.cw-key-left,
+.cw-key-right,
+.cw-key-rebus,
+.cw-key-alt-toggle,
+.cw-key-backspace {
+  max-width: none;
+  flex: 1;
+}
+
+.cw-key-alt-toggle,
+.cw-key-rebus {
+  max-width: none;
+}
+
+.crossword.mobile .custom-key.cw-key-left,
+.crossword.mobile .custom-key.cw-key-right {
+  background-color: var(--top-text-wrapper-bg-color) !important;
+  color: var(--top-text-wrapper-text-color) !important;
+  font-weight: bold;
+}
+
+.cw-key-alt-toggle.active {
+  background-color: var(--button-hover-color);
+  font-weight: bold;
+}
+
+.keyboard-wrapper-placeholder {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--main-bg-color);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.crossword.mobile .cw-buttons-drawer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0%;
+  /*sits on top of keyboard */
+  height: 120px;
+  /* or whatever fits your buttons */
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  will-change: transform;
+  z-index: 0;
+  background: var(--main-bg-color);
+  overflow: visible;
+  pointer-events: auto;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.crossword.mobile .cw-buttons-drawer.open {
+  transform: translateY(-180%);
+}
+
+.crossword.mobile .cw-menu {
+  z-index: 999;
+  position: absolute;
+}
+
+.crossword.mobile .cw-buttons-handle {
+  position: absolute;
+  height: 24px;
+  left: 0;
+  right: 0;
+  bottom: 27%;
+  background: var(--top-text-wrapper-bg-color);
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  cursor: pointer;
+  z-index: 21;
+}
+
+.crossword.mobile .cw-buttons-handle::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  background: var(--top-text-wrapper-text-color);
+  border-radius: 2px;
+  margin: 8px auto;
+}
+
+/* ---- Ducktiles embedded modal sizing ---- */
+.modal-content.modal-large {
+  width: 94%;
+  max-width: 1200px;
+  height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content.modal-large .modal-body {
+  /* Fill remaining height between header and footer */
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  margin: 0.75em 1em;
+}
+
+.dt-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  flex: 1 1 auto;
+}
+
+.dt-toolbar {
+  display: flex;
+  gap: 0.75em;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.dt-field {
+  flex: 1 1 360px;
+}
+
+.dt-label {
+  display: block;
+  font-weight: 600;
+}
+
+.dt-actions {
+  display: flex;
+  gap: 0.5em;
+  flex: 0 0 auto;
+}
+
+.dt-iframe-wrapper {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 65vh;
+}
+
+.dt-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .06) inset;
+  border-radius: 6px;
+}
+
+.dt-iframe-help {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 8px 10px;
+  font-size: 0.9em;
+  text-align: center;
+  background: var(--modal-content-bg-color);
+  opacity: 0.85;
+  border-top: 1px solid rgba(0, 0, 0, .08);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* mini helper bar above the iframe */
+.dt-helper-bar {
+  position: absolute;
+  z-index: 2;
+  left: 8px;
+  right: 8px;
+  top: 8px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--modal-content-bg-color, #fff);
+  color: var(--main-text-color, #222);
+  border: 1px solid rgba(0, 0, 0, .08);
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+
+.dt-helper-bar code {
+  font-family: "Azeret Mono", monospace;
+  padding: 2px 6px;
+}
+
+.dt-helper-bar .dt-actions {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dt-helper-bar .dt-hint {
+  opacity: .7;
+  font-size: .85em;
+}
+
+.dt-helper-bar.copied code {
+  outline: 2px solid var(--clue-active-color, #88c);
+  border-radius: 4px;
+}
+
+/* ---- Large modal sizing for embedded tools ---- */
+.modal-content.modal-large {
+  width: 94%;
+  max-width: 1200px;
+  height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content.modal-large .modal-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  margin: 0.25em .75em;
+  padding: 0;
+}
+
+/* Draggable modal cues (desktop) */
+.modal-content.modal-draggable .modal-header {
+  cursor: move;
+  user-select: none;
+}

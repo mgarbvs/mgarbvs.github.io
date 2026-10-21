@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -105,6 +106,7 @@
   left: 0;
   width: 100%;
   height: 100%;
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   transform: rotateY(0deg);
   background-image: url("white_leather.png");
@@ -125,6 +127,7 @@
   left: 0;
   width: 100%;
   height: 100%;
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   transform: rotateY(180deg);
   background-image: url("white_leather.png");
@@ -269,15 +272,30 @@ a:hover{
 /* Mobile */
 @media (max-width: 700px) {
   body {
-    padding: 0 16px;
+    padding: 52px 16px 0;
+  }
+
+  header li {
+    list-style-position: inside;
+    text-align: left;
+  }
+
+  .project-card {
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .card {
     height: 220px;
+    max-width: 100%;
   }
 
   .card h1 {
     font-size: 34px !important;
+  }
+
+  .card-front br {
+    display: none;
   }
 
   header p {

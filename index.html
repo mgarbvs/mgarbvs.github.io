@@ -269,6 +269,18 @@ a:hover{
   line-height: 1.5;
 }
 
+/* Desktop: break out of the body's 80ch cap so all project cards fit on one row */
+@media (min-width: 1000px) {
+  .projects-strip {
+    width: min(1200px, 100vw - 80px);
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .project-row { flex-wrap: nowrap; }
+  .project-card { flex: 1 1 0; width: auto; min-width: 0; }
+}
+
 /* Mobile */
 @media (max-width: 700px) {
   body {

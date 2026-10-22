@@ -11,7 +11,8 @@ window.CrosswordShared = {
     const b64config = url.searchParams.get("config");
     const params = {
       downsOnly: downsOnly,
-      kelsey: kelsey
+      kelsey: kelsey,
+      timer_autostart: true
     };
     const lzpuz = window.location.hash.slice(1);
 

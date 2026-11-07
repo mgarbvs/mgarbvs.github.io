@@ -478,7 +478,7 @@ button, input, select {
 <script type="module">
 import { resolveRound, validatePlay, damageMultiplier, TICK_SECONDS, BLANK, premiumAt } from './engine.js';
 import { generateMoves } from './movegen.js';
-import { RealtimeGame, botKind, botStyle, botNames } from './realtime.js';
+import { RealtimeGame, botKind, botStyle, botNames, parseWordList } from './realtime.js';
 
 let YOU = 'you'; // 'you' locally; the server-assigned playerId (e.g. 'p2') once online
 const LETTER_VALUES = {
@@ -563,6 +563,7 @@ const waitingForHostEl = document.getElementById('waitingForHost');
 
 // ---- game state (client) ----
 let dict = null;
+let botDicts = null;        // per-difficulty bot vocabularies (subsets of dict)
 let state = null;
 let seatColors = new Map();
 let cellEls = [];
@@ -597,10 +598,10 @@ let lastSynced = '[]';      // last pending tiles sent to the game/server
 function me() { return state.players.find((p) => p.id === YOU); }
 
 // ---- dictionary ----
-fetch('./enable1.txt')
+fetch('./words.txt')
   .then((r) => r.text())
   .then((text) => {
-    dict = new Set(text.split('\n').map((w) => w.trim().toLowerCase()).filter((w) => w.length >= 2));
+    ({ dict, botDicts } = parseWordList(text));
     startBtn.disabled = false;
     startBtn.textContent = 'Start game';
   })
@@ -1457,7 +1458,7 @@ startBtn.addEventListener('click', () => {
   const players = [YOU, ...Array.from({ length: n }, (_, i) => `bot${i + 1}`)];
   game?.stop();
   const bots = Object.fromEntries(players.slice(1).map((id) => [id, botKind(id)]));
-  game = new RealtimeGame({ players, seed, dict, bots, difficulty: botDifficultyInput.value, randomSpawns: randomSpawnsInput.checked, onUpdate: (events) => applyUpdate(game.state, events, game.cooldownUntil.get(YOU)) });
+  game = new RealtimeGame({ players, seed, dict, botDict: botDicts[botDifficultyInput.value], bots, difficulty: botDifficultyInput.value, randomSpawns: randomSpawnsInput.checked, onUpdate: (events) => applyUpdate(game.state, events, game.cooldownUntil.get(YOU)) });
   state = game.state;
   cooldownUntil = 0; lastSynced = '[]';
   eliminationOrder = [];

@@ -34,6 +34,21 @@ export function botKind(id        )          {
 export function botStyle(kind         , difficulty             = 'medium')                   {
   return difficulty === 'easy' ? 'easy' : difficulty === 'hard' ? 'aggressive' : kind;
 }
+// words.txt: one word per line, optionally "word N" where N is the lowest bot level that may play it
+// (1 easy, 2 medium, 3 hard). Players may play every word; bots only words at or below their level.
+const BOT_LEVEL                             = { easy: 1, medium: 2, hard: 3 };
+export function parseWordList(text        )                                                                   {
+  const dict = new Set        ();
+  const botDicts                                  = { easy: new Set(), medium: new Set(), hard: new Set() };
+  for (const line of text.split('\n')) {
+    const [word, level] = line.trim().toLowerCase().split(' ');
+    if (!word || word.length < 2) continue;
+    dict.add(word);
+    if (level) for (const d of Object.keys(botDicts)                ) if (Number(level) <= BOT_LEVEL[d]) botDicts[d].add(word);
+  }
+  return { dict, botDicts };
+}
+
                                                                                                                                     
 
 export class RealtimeGame {
@@ -42,6 +57,7 @@ export class RealtimeGame {
           timers = new Set                               ();
           ticker                                        = null;
           dict             ;
+          botDict             ; // words bots may play (a subset of dict)
           bots                         ;
           onUpdate                               ;
           speed        ;
@@ -49,8 +65,9 @@ export class RealtimeGame {
           difficulty            ;
 
   // `speed` scales every real-time delay (tests use a large value).
-  constructor(opts                                                                                                                                                                                                  ) {
+  constructor(opts                                                                                                                                                                                                                         ) {
     this.dict = opts.dict;
+    this.botDict = opts.botDict ?? opts.dict;
     this.bots = opts.bots ?? {};
     this.onUpdate = opts.onUpdate;
     this.speed = opts.speed ?? 1;
@@ -121,8 +138,8 @@ export class RealtimeGame {
       const p = this.state.players.find((x) => x.id === id);
       if (!p || p.eliminated || this.state.gameOver) return;
       const style = botStyle(this.bots[id], this.difficulty);
-      const move = style === 'easy' ? randomBot(this.state, id, this.dict, Math.random)
-        : (style === 'aggressive' ? aggressiveBot : greedyBot)(this.state, id, this.dict);
+      const move = style === 'easy' ? randomBot(this.state, id, this.botDict, Math.random)
+        : (style === 'aggressive' ? aggressiveBot : greedyBot)(this.state, id, this.botDict);
       const pace = this.pace[id] ?? 1;
       const next = () => this.scheduleBot(id, (1500 + Math.random() * 2500) * pace);
       if (move.type !== 'play') {

@@ -117,6 +117,8 @@ button, input, select {
 #setup { max-width: 420px; margin: 40px auto; }
 #setup .tagline { color: var(--text-muted); margin-top: 0; }
 #setup label { display: block; margin-top: 14px; font-weight: 600; }
+#setup .check { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+#setup .check input { width: auto; margin: 0; }
 #setup input, #setup select { width: 100%; margin-top: 4px; padding: 8px; border-radius: 6px; border: 1px solid var(--panel-border); background: var(--bg); color: var(--text); }
 #startBtn { width: 100%; margin-top: 20px; }
 .how-to { margin-top: 18px; color: var(--text-muted); font-size: .92rem; }
@@ -135,7 +137,7 @@ button, input, select {
 #lobbyCode { font-family: 'IBM Plex Mono', monospace; font-size: 1.8rem; letter-spacing: .2em; }
 #lobbyPlayerList { list-style: none; margin: 14px 0; padding: 0; }
 #lobbyPlayerList li { padding: 6px 0; border-bottom: 1px dotted var(--panel-border); }
-#hostControls { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+#hostControls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; }
 #hostControls input { width: 70px; margin-top: 0; }
 #hostControls select { margin-top: 0; padding: 6px; border-radius: 6px; border: 1px solid var(--panel-border); background: var(--bg); color: var(--text); }
 #waitingForHost { color: var(--text-muted); margin-top: 14px; }
@@ -144,13 +146,33 @@ button, input, select {
 #game {
   display: grid;
   grid-template-columns: 1fr 300px;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   gap: 16px;
 }
-#boardWrap { grid-column: 1; grid-row: 1; min-width: 0; }
-#rackBar { grid-column: 1; grid-row: 2; min-width: 0; }
-#sidebar { grid-column: 2; grid-row: 1 / span 2; min-width: 0; }
-#hud, #sideToggle, #backBtn { display: none; }
+#hud { grid-column: 1; grid-row: 1; display: flex; align-items: center; gap: 10px; }
+#boardWrap { grid-column: 1; grid-row: 2; min-width: 0; position: relative; }
+#rackBar { grid-column: 1; grid-row: 3; min-width: 0; }
+#sidebar { grid-column: 2; grid-row: 1 / span 3; min-width: 0; }
+#sideToggle, #zoomBtn, #keyboard { display: none; }
+
+/* your own HP: big, always visible */
+#myHp { flex: 1; min-width: 100px; position: relative; height: 32px; background: var(--hp-bg); border-radius: 8px; overflow: hidden; }
+#myHpFill { height: 100%; background: var(--hp-fill); }
+#myHpFill.low { background: var(--storm); }
+#myHpText { position: absolute; inset: 0; display: flex; align-items: center; padding-left: 10px; font-weight: 700; font-size: 1.1rem; color: var(--text); text-shadow: 0 0 4px var(--panel-bg), 0 0 2px var(--panel-bg); }
+#myHp.hit { outline: 3px solid var(--storm); outline-offset: 1px; }
+#hudText { font-weight: 600; font-size: .9rem; white-space: nowrap; }
+@media (prefers-reduced-motion: no-preference) {
+  #myHpFill { transition: width .3s ease, background-color .25s ease; }
+  #myHp.hit { animation: hpShake .4s ease-out 1; }
+}
+@keyframes hpShake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+/* who is attacking you: hits and opponents building words on your tiles */
+#attackFeed { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; width: max-content; max-width: calc(100% - 16px); }
+.attack-msg { display: flex; align-items: center; gap: 6px; background: var(--panel-bg); border: 2px solid var(--panel-border); border-radius: 999px; padding: 4px 12px; font-weight: 600; font-size: .9rem; box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
+.attack-msg.hit { border-color: var(--storm); color: var(--storm); }
+.attack-msg .swatch { flex: none; }
 
 #boardControls { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--text-muted); font-size: .9rem; }
 #boardControls input[type="range"] { flex: 1; max-width: 160px; }
@@ -272,7 +294,7 @@ button, input, select {
 .player-row.you-flash { background: color-mix(in srgb, var(--storm) 25%, transparent); }
 .swatch { width: 12px; height: 12px; border-radius: 50%; background: var(--swatch-color, var(--neutral)); }
 .hp-row { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; position: relative; }
-.hp-bar { flex: 1; height: 6px; background: var(--hp-bg); border-radius: 3px; overflow: hidden; }
+.hp-bar { flex: 1; height: 10px; background: var(--hp-bg); border-radius: 5px; overflow: hidden; }
 .hp-fill { height: 100%; background: var(--hp-fill); }
 .hp-fill.dmg-flash { background: var(--storm); }
 .dmg-float { position: absolute; right: 0; top: -4px; color: var(--storm); font-weight: 700; font-size: .8rem; pointer-events: none; }
@@ -295,12 +317,14 @@ button, input, select {
 #letterGrid button { min-height: 40px; }
 @media (max-width: 760px) {
   /* Phone layout: HUD on top, board fills the screen, rack + actions docked at the bottom,
-     players/log in a slide-up sheet. Tap a square to set the cursor, then tap rack tiles to type. */
+     players/log in a slide-up sheet. Tap a square to set the cursor, then type on the on-screen keyboard (or tap rack tiles). */
   body { padding: 8px; }
   #game:not([hidden]) { display: flex; flex-direction: column; height: calc(100dvh - 16px); gap: 6px; }
-  #hud { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .88rem; font-weight: 600; }
-  #sideToggle { display: inline-block; padding: 6px 10px; }
+  #hud { gap: 6px; }
+  #hudText { font-size: .8rem; }
+  #sideToggle, #zoomBtn { display: inline-block; padding: 6px 10px; min-width: 40px; }
   #boardWrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  #attackFeed { top: 8px; }
   #boardControls { display: none; }
   #boardScroll { height: auto; flex: 1; min-height: 0; touch-action: pan-x pan-y; }
   #rackBar { padding: 8px; flex: none; }
@@ -309,7 +333,12 @@ button, input, select {
   #actions { flex-wrap: nowrap; overflow-x: auto; }
   #actions .btn { padding: 12px 14px; white-space: nowrap; }
   #playBtn { flex: 1; min-width: 90px; }
-  #backBtn { display: inline-block; }
+  /* on-screen keyboard, NYT-crossword style: tap a square, then type; letters you don't hold are dimmed */
+  #keyboard { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+  .kb-row { display: flex; gap: 4px; justify-content: center; }
+  .kb-key { flex: 1; max-width: 40px; height: 42px; padding: 0; border-radius: 5px; border: 1px solid var(--panel-border); background: var(--bg); color: var(--text); font-weight: 600; font-size: 1.05rem; touch-action: manipulation; cursor: pointer; }
+  .kb-key.wide { flex: 1.6; max-width: 64px; }
+  .kb-key.off { opacity: .35; }
   #preview { margin-top: 6px; font-size: .88rem; }
   #hintBtn, #shuffleBtn { display: none; }
   #sidebar { position: fixed; left: 0; right: 0; bottom: 0; max-height: 70dvh; overflow: auto; z-index: 40; border-radius: 12px 12px 0 0; transform: translateY(105%); transition: transform .2s; }
@@ -325,6 +354,7 @@ button, input, select {
     <input id="botCount" type="number" min="1" max="99" value="3" />
     <label for="botDifficulty">Bot difficulty</label>
     <select id="botDifficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select>
+    <label class="check"><input id="randomSpawns" type="checkbox" /> Random spawn points</label>
     <label for="seedInput">Seed (optional)</label>
     <input id="seedInput" type="text" placeholder="random" />
     <button id="startBtn" class="btn primary" disabled>Loading dictionary…</button>
@@ -364,17 +394,24 @@ button, input, select {
       <input id="lobbyBotCount" type="number" min="0" max="99" value="0" />
       <label for="lobbyBotDifficulty">Bot difficulty</label>
       <select id="lobbyBotDifficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select>
+      <label><input id="lobbyRandomSpawns" type="checkbox" /> Random spawns</label>
       <button id="lobbyStartBtn" class="btn primary">Start game</button>
     </div>
     <p id="waitingForHost" hidden>Waiting for the host to start…</p>
   </section>
 
   <section id="game" hidden>
-    <div id="hud"><span id="hudText"></span><button id="sideToggle" class="btn">Players</button></div>
+    <div id="hud">
+      <div id="myHp"><div id="myHpFill"></div><span id="myHpText"></span></div>
+      <span id="hudText"></span>
+      <button id="zoomBtn" class="btn" aria-label="Zoom board" aria-pressed="false">🔍</button>
+      <button id="sideToggle" class="btn" aria-label="Players and log">☰</button>
+    </div>
     <div id="boardWrap">
+      <div id="attackFeed" aria-live="polite"></div>
       <div id="boardControls">
         <label for="zoom">Zoom</label>
-        <input id="zoom" type="range" min="16" max="44" step="2" value="28" />
+        <input id="zoom" type="range" min="10" max="44" step="2" value="28" />
       </div>
       <div id="boardScroll"><div id="board"></div></div>
     </div>
@@ -387,7 +424,6 @@ button, input, select {
       <div id="rack" class="tile-row"></div>
       <div id="actions">
         <button id="playBtn" class="btn primary" disabled>Play</button>
-        <button id="backBtn" class="btn" aria-label="Delete last letter">⌫</button>
         <button id="recallBtn" class="btn">Recall</button>
         <button id="shuffleBtn" class="btn">Shuffle</button>
         <button id="swapBtn" class="btn">Swap tiles</button>
@@ -395,6 +431,7 @@ button, input, select {
         <button id="passBtn" class="btn">Pass</button>
         <button id="hintBtn" class="btn">Hint</button>
       </div>
+      <div id="keyboard"></div>
       <div id="preview" aria-live="polite"></div>
       <div id="roundSummary" hidden aria-live="polite"></div>
       <div id="hints" hidden></div>
@@ -486,16 +523,18 @@ setInterval(() => {
   if (!state || gameEl.hidden) { roundClockEl.textContent = ''; return; }
   const secs = Math.ceil((cooldownUntil - Date.now()) / 1000);
   roundClockEl.textContent = secs > 0 ? `⏱ Cooldown ${secs}s` : '✔ Ready — commit your word any time';
-  const you = me();
-  hudTextEl.textContent = `${Math.max(0, you.hp)} HP · ${secs > 0 ? `⏱ ${secs}s` : '✔ Ready'} · ${damageStatusText().split(' — ')[0]}`;
+  hudTextEl.textContent = `${secs > 0 ? `⏱ ${secs}s` : '✔ Ready'} · ${damageStatusText().split(' — ')[0]}`;
 }, 250);
 const hudTextEl = document.getElementById('hudText');
+const myHpEl = document.getElementById('myHp');
+const myHpFillEl = document.getElementById('myHpFill');
+const myHpTextEl = document.getElementById('myHpText');
+const attackFeedEl = document.getElementById('attackFeed');
+const keyboardEl = document.getElementById('keyboard');
+const zoomBtn = document.getElementById('zoomBtn');
+const randomSpawnsInput = document.getElementById('randomSpawns');
+const lobbyRandomSpawnsInput = document.getElementById('lobbyRandomSpawns');
 document.getElementById('sideToggle').addEventListener('click', () => document.body.classList.toggle('show-side'));
-document.getElementById('backBtn').addEventListener('click', () => {
-  const last = pending.pop();
-  if (last) cursor = { row: last.row, col: last.col, dir: cursor ? cursor.dir : 'H' };
-  renderAll();
-});
 const playerListEl = document.getElementById('playerList');
 const logEl = document.getElementById('log');
 const letterPickerEl = document.getElementById('letterPicker');
@@ -541,6 +580,8 @@ let logLines = [];
 let roundHighlight = { placed: new Set(), captured: new Set() };
 let highlightTimer = null;
 let displayNames = new Map();
+let hits = [];              // recent damage to you: {by, amount, until}
+let zoomed = false;         // phones: board fits the screen unless zoomed in
 
 // ---- online state ----
 let onlineMode = false;
@@ -678,7 +719,7 @@ function buildBoardDom() {
   boardEl.appendChild(movePreviewBadgeEl);
 }
 function fitBoard() {
-  const min = window.matchMedia('(max-width: 760px)').matches ? 32 : Number(zoomInput.min); // phones: scroll rather than shrink to unreadable
+  const min = 10; // fit the whole board when it can be read at all; zoom is there for detail
   const max = Number(zoomInput.max);
   const size = Math.floor(Math.min(boardScrollEl.clientWidth, boardScrollEl.clientHeight) / state.boardSide) - 1;
   const clamped = Math.max(min, Math.min(max, size));
@@ -764,6 +805,9 @@ function makeTileEl(letter, tag) {
 function renderRack() {
   rackEl.innerHTML = '';
   const rack = displayedRack();
+  for (const key of keyboardEl.querySelectorAll('.kb-key[data-key]:not([data-key="back"])')) {
+    key.classList.toggle('off', !rack.includes(key.dataset.key) && !rack.includes(BLANK));
+  }
   const over = giveMode();
   rack.forEach((letter, idx) => {
     const el = makeTileEl(letter, 'button');
@@ -891,7 +935,13 @@ function advanceCursor() {
   while (r >= 0 && c >= 0 && r < state.boardSide && c < state.boardSide && isOccupied(r, c)) { r += dr; c += dc; }
   cursor = (r >= 0 && c >= 0 && r < state.boardSide && c < state.boardSide) ? { row: r, col: c, dir: cursor.dir } : null;
 }
+function backspace() {
+  const last = pending.pop();
+  if (last) cursor = { row: last.row, col: last.col, dir: cursor ? cursor.dir : 'H' };
+  renderAll();
+}
 function typeLetter(letter) {
+  if (!cursor) { previewEl.textContent = 'Tap a square to start a word.'; previewEl.className = 'bad'; return; }
   const avail = displayedRack();
   let tile;
   if (avail.includes(letter)) tile = { letter, blank: false };
@@ -907,14 +957,29 @@ document.addEventListener('keydown', (e) => {
   if (swapMode) return;
   if (e.key === 'Enter') { e.preventDefault(); if (!playBtn.disabled) playBtn.click(); return; }
   if (e.key === 'Escape') { pending = []; renderAll(); return; }
-  if (e.key === 'Backspace') {
-    e.preventDefault();
-    const last = pending.pop();
-    if (last) cursor = { row: last.row, col: last.col, dir: cursor ? cursor.dir : 'H' };
-    renderAll();
-    return;
-  }
+  if (e.key === 'Backspace') { e.preventDefault(); backspace(); return; }
   if (cursor && /^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); typeLetter(e.key.toLowerCase()); }
+});
+
+['qwertyuiop', 'asdfghjkl', 'zxcvbnm'].forEach((letters, i) => {
+  const row = document.createElement('div');
+  row.className = 'kb-row';
+  const keys = letters.split('').map((ch) => [ch, ch.toUpperCase()]);
+  if (i === 2) keys.push(['back', '⌫']);
+  for (const [key, label] of keys) {
+    const btn = document.createElement('button');
+    btn.className = 'kb-key' + (key === 'back' ? ' wide' : '');
+    btn.dataset.key = key;
+    btn.textContent = label;
+    if (key === 'back') btn.setAttribute('aria-label', 'Delete last letter');
+    row.appendChild(btn);
+  }
+  keyboardEl.appendChild(row);
+});
+keyboardEl.addEventListener('click', (e) => {
+  const key = e.target.closest('.kb-key')?.dataset.key;
+  if (!key || pickerOpen || swapMode || state.gameOver) return;
+  if (key === 'back') backspace(); else typeLetter(key);
 });
 
 // ---- preview ----
@@ -1016,7 +1081,39 @@ function damageStatusText() {
   const nextMult = damageMultiplier(nextRise);
   return `Damage ×${mult} — rises to ×${nextMult} in ${(nextRise - state.round) * TICK_SECONDS}s.`;
 }
+function renderMyHp() {
+  const hp = Math.max(0, me().hp);
+  myHpFillEl.style.width = `${Math.min(50, hp) / 50 * 100}%`;
+  myHpFillEl.classList.toggle('low', hp <= 15);
+  myHpTextEl.textContent = `${hp} HP`;
+}
+function renderAttackFeed() {
+  const now = Date.now();
+  hits = hits.filter((h) => h.until > now);
+  attackFeedEl.innerHTML = '';
+  const add = (id, text, cls) => {
+    const msg = document.createElement('div');
+    msg.className = 'attack-msg' + (cls ? ` ${cls}` : '');
+    const swatch = document.createElement('span');
+    swatch.className = 'swatch';
+    swatch.style.setProperty('--swatch-color', colorFor(id));
+    msg.append(swatch, text);
+    attackFeedEl.appendChild(msg);
+  };
+  for (const h of hits.slice(-2)) add(h.by, `${displayName(h.by)} hit you −${h.amount}`, 'hit');
+  // Incoming: an opponent's pending word touches a tile you own.
+  const mine = new Set();
+  for (let r = 0; r < state.boardSide; r++) for (let c = 0; c < state.boardSide; c++) if (state.board[r][c]?.owner === YOU) mine.add(`${r},${c}`);
+  for (const p of state.players) {
+    if (p.id === YOU || p.eliminated || !p.pending?.length) continue;
+    if (p.pending.some((t) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dr, dc]) => mine.has(`${t.row + dr},${t.col + dc}`)))) {
+      add(p.id, `${displayName(p.id)} is attacking your tiles`);
+    }
+  }
+}
 function renderSidebar() {
+  renderMyHp();
+  renderAttackFeed();
   const t = state.round * TICK_SECONDS;
   roundInfoEl.innerHTML = `<strong>${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}</strong><br>${damageStatusText()}`;
   const owned = countOwnedTiles();
@@ -1211,6 +1308,9 @@ function showDamageFeedback(events) {
     hpFill.classList.add('dmg-flash');
     setTimeout(() => hpFill.classList.remove('dmg-flash'), 1000);
     if (ev.playerId === YOU) {
+      myHpEl.classList.add('hit');
+      setTimeout(() => myHpEl.classList.remove('hit'), 600);
+      if (ev.by) { hits.push({ by: ev.by, amount: ev.amount, until: Date.now() + 4000 }); setTimeout(renderAttackFeed, 4050); }
       li.classList.add('you-flash');
       setTimeout(() => li.classList.remove('you-flash'), 1000);
     }
@@ -1256,6 +1356,7 @@ function applyUpdate(newState, events, cooldown) {
   renderSidebar();
   renderLog();
   showDamageFeedback(events);
+  renderAttackFeed();
   if (highlightTimer) clearTimeout(highlightTimer);
   if (placedPos.size || capturedPos.size) {
     highlightTimer = setTimeout(() => { roundHighlight = { placed: new Set(), captured: new Set() }; renderBoard(); }, 2500);
@@ -1304,6 +1405,15 @@ newGameBtn.addEventListener('click', () => {
   }
   setupEl.hidden = false;
 });
+zoomBtn.addEventListener('click', () => {
+  zoomed = !zoomed;
+  zoomBtn.setAttribute('aria-pressed', String(zoomed));
+  if (!zoomed) { fitBoard(); return; }
+  boardEl.style.setProperty('--cell', '36px');
+  const at = cursor ?? pending[0];
+  if (at) cellEls[at.row][at.col].scrollIntoView({ block: 'center', inline: 'center' }); else scrollToTerritory();
+});
+new ResizeObserver(() => { if (state && !gameEl.hidden && !zoomed) fitBoard(); }).observe(boardScrollEl); // refit as the panels around the board change size
 zoomInput.addEventListener('input', () => {
   boardEl.style.setProperty('--cell', `${zoomInput.value}px`);
 });
@@ -1343,14 +1453,14 @@ startBtn.addEventListener('click', () => {
   const players = [YOU, ...Array.from({ length: n }, (_, i) => `bot${i + 1}`)];
   game?.stop();
   const bots = Object.fromEntries(players.slice(1).map((id) => [id, botKind(id)]));
-  game = new RealtimeGame({ players, seed, dict, bots, difficulty: botDifficultyInput.value, onUpdate: (events) => applyUpdate(game.state, events, game.cooldownUntil.get(YOU)) });
+  game = new RealtimeGame({ players, seed, dict, bots, difficulty: botDifficultyInput.value, randomSpawns: randomSpawnsInput.checked, onUpdate: (events) => applyUpdate(game.state, events, game.cooldownUntil.get(YOU)) });
   state = game.state;
   cooldownUntil = 0; lastSynced = '[]';
   eliminationOrder = [];
   logLines = [];
   lootTake = []; lootGive = []; lootFrom = null;
-  pending = []; cursor = null; selectedRackIndex = null;
-  swapMode = false; swapSelected = [];
+  pending = []; cursor = { row: me().spawn.row, col: me().spawn.col, dir: 'H' }; selectedRackIndex = null;
+  swapMode = false; swapSelected = []; hits = []; zoomed = false; zoomBtn.setAttribute('aria-pressed', 'false');
   roundHighlight = { placed: new Set(), captured: new Set() };
   roundSummaryEl.hidden = true; roundSummaryEl.textContent = '';
   buildSeatColors();
@@ -1414,8 +1524,9 @@ function enterOnlineGame(view, cooldown, lobbyPlayers) {
   eliminationOrder = [];
   logLines = [];
   lootTake = []; lootGive = []; lootFrom = null;
-  pending = (me().pending || []).map((t) => ({ ...t })); lastSynced = JSON.stringify(pending); cursor = null; selectedRackIndex = null;
-  swapMode = false; swapSelected = [];
+  pending = (me().pending || []).map((t) => ({ ...t })); lastSynced = JSON.stringify(pending);
+  cursor = me().hasPlayedEver ? null : { row: me().spawn.row, col: me().spawn.col, dir: 'H' }; selectedRackIndex = null;
+  swapMode = false; swapSelected = []; hits = []; zoomed = false; zoomBtn.setAttribute('aria-pressed', 'false');
   roundHighlight = { placed: new Set(), captured: new Set() };
   roundSummaryEl.hidden = true; roundSummaryEl.textContent = '';
   buildSeatColors();
@@ -1474,7 +1585,7 @@ lobbyStartBtn.addEventListener('click', async () => {
     const res = await fetch(`/api/lobbies/${lobbyCode}/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-      body: JSON.stringify({ bots, difficulty: lobbyBotDifficultyInput.value }),
+      body: JSON.stringify({ bots, difficulty: lobbyBotDifficultyInput.value, randomSpawns: lobbyRandomSpawnsInput.checked }),
     });
     const data = await res.json();
     if (!res.ok) onlineErrorEl.textContent = data.error || 'Could not start the game.';

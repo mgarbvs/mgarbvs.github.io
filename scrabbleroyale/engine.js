@@ -39,6 +39,7 @@
                     
                
                                                                                                                                     
+                                                                                                     
   
 
                        
@@ -174,6 +175,15 @@ export function createGame(config            )            {
     winner: null,
     gameOver: false,
   };
+
+  if (config.randomSpawns) {
+    const slots = spawns.slice();
+    for (const p of state.players) {
+      const { row, col } = slots.splice(Math.floor(nextRandom(state) * slots.length), 1)[0];
+      const jitter = () => Math.floor(nextRandom(state) * 5) - 2;
+      p.spawn = { row: Math.max(0, Math.min(side - 1, row + jitter())), col: Math.max(0, Math.min(side - 1, col + jitter())) };
+    }
+  }
 
   for (const p of state.players) {
     p.rack = drawTiles(state, 7);

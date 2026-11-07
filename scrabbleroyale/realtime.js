@@ -32,7 +32,7 @@ export class RealtimeGame {
           difficulty            ;
 
   // `speed` scales every real-time delay (tests use a large value).
-  constructor(opts                                                                                                                                                                          ) {
+  constructor(opts                                                                                                                                                                                                  ) {
     this.dict = opts.dict;
     this.bots = opts.bots ?? {};
     this.onUpdate = opts.onUpdate;
@@ -40,7 +40,7 @@ export class RealtimeGame {
     this.difficulty = opts.difficulty ?? 'medium';
     const base = DIFFICULTY_PACE[this.difficulty];
     Object.keys(this.bots).forEach((id, i) => { this.pace[id] = base * [0.5, 1, 1.8, 0.75, 2.5][i % 5]; });
-    this.state = createGame({ players: opts.players, seed: opts.seed, dictionary: opts.dict });
+    this.state = createGame({ players: opts.players, seed: opts.seed, dictionary: opts.dict, randomSpawns: opts.randomSpawns });
   }
 
   start() {

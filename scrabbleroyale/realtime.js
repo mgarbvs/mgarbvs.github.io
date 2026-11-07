@@ -8,6 +8,23 @@ import { aggressiveBot, greedyBot, randomBot } from './movegen.js';
                                                     
 const DIFFICULTY_PACE                             = { easy: 1.8, medium: 1, hard: 0.6 };
 
+const BOT_NAMES = [
+  'Edmund', 'Sigmund', 'Agatha', 'Beatrix', 'Cornelius', 'Dorothea', 'Ignatius', 'Hildegard',
+  'Ophelia', 'Barnaby', 'Winifred', 'Archibald', 'Mathilda', 'Percival', 'Rosalind', 'Thaddeus',
+  'Imogen', 'Leopold', 'Clementine', 'Ambrose', 'Henrietta', 'Augustin', 'Gertrude', 'Florian',
+  'Josephine', 'Octavia', 'Rupert', 'Esmeralda', 'Wilhelmina', 'Bartholomew', 'Philippa', 'Reginald',
+];
+
+// `count` distinct-looking bot names in random order (past the list's length they repeat with a number).
+export function botNames(count        , rand               = Math.random)           {
+  const pool = BOT_NAMES.slice();
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return Array.from({ length: count }, (_, i) => pool[i % pool.length] + (i >= pool.length ? ` ${Math.floor(i / pool.length) + 1}` : ''));
+}
+
 // Bots alternate kinds by seat: bot1 aggressive, bot2 greedy, ...
 export function botKind(id        )          {
   return Number(id.slice(3)) % 2 === 1 ? 'aggressive' : 'greedy';

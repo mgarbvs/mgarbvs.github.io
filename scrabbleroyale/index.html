@@ -168,7 +168,7 @@ button, input, select {
 }
 @keyframes hpShake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-/* who is attacking you: hits and opponents building words on your tiles */
+/* hits you took and dealt, and opponents building words on your tiles */
 #attackFeed { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; width: max-content; max-width: calc(100% - 16px); }
 .attack-msg { display: flex; align-items: center; gap: 6px; background: var(--panel-bg); border: 2px solid var(--panel-border); border-radius: 999px; padding: 4px 12px; font-weight: 600; font-size: .9rem; box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
 .attack-msg { border-color: var(--who); color: var(--who); }
@@ -478,7 +478,7 @@ button, input, select {
 <script type="module">
 import { resolveRound, validatePlay, damageMultiplier, TICK_SECONDS, BLANK, premiumAt } from './engine.js';
 import { generateMoves } from './movegen.js';
-import { RealtimeGame, botKind, botStyle } from './realtime.js';
+import { RealtimeGame, botKind, botStyle, botNames } from './realtime.js';
 
 let YOU = 'you'; // 'you' locally; the server-assigned playerId (e.g. 'p2') once online
 const LETTER_VALUES = {
@@ -578,7 +578,7 @@ let logLines = [];
 let roundHighlight = { placed: new Set(), captured: new Set() };
 let highlightTimer = null;
 let displayNames = new Map();
-let hits = [];              // recent damage to you: {by, amount, until}
+let hits = [];              // recent hits taken or dealt: {id (the other player), text, until}
 let zoomed = false;         // board fits the screen unless pinched / double-tapped in
 let fitCell = 28;           // cell size (px) that fits the whole board
 let lastTap = null;         // for double-tap detection: {t, x, y, before}
@@ -615,13 +615,12 @@ function subtractMultiset(arr, remove) {
   }
   return copy;
 }
-function botDisplayName(id) {
-  return `Bot ${Number(id.slice(3))} · ${botStyle(botKind(id), botDifficultyInput.value)}`;
-}
 function buildLocalDisplayNames() {
   displayNames = new Map();
   displayNames.set(YOU, 'You');
-  for (const p of state.players) if (p.id !== YOU) displayNames.set(p.id, botDisplayName(p.id));
+  const others = state.players.filter((p) => p.id !== YOU);
+  const names = botNames(others.length);
+  others.forEach((p, i) => displayNames.set(p.id, `${names[i]} · ${botStyle(botKind(p.id), botDifficultyInput.value)}`));
 }
 function buildOnlineDisplayNames(players) {
   displayNames = new Map();
@@ -1112,7 +1111,7 @@ function renderAttackFeed() {
     msg.append(swatch, text);
     attackFeedEl.appendChild(msg);
   };
-  for (const h of hits.slice(-2)) add(h.by, `${displayName(h.by)} hit you −${h.amount}`, 'hit');
+  for (const h of hits.slice(-3)) add(h.id, h.text, 'hit');
   // Incoming: an opponent's pending word touches a tile you own.
   const mine = new Set();
   for (let r = 0; r < state.boardSide; r++) for (let c = 0; c < state.boardSide; c++) if (state.board[r][c]?.owner === YOU) mine.add(`${r},${c}`);
@@ -1308,9 +1307,15 @@ function buildRoundSummary(events) {
   if (took) parts.push(`took ${took} (${[...new Set(tookEvents.map((ev) => displayName(ev.by)))].join('/')})`);
   return parts.join(' · ');
 }
+function addHit(id, text) {
+  hits.push({ id, text, until: Date.now() + 4000 });
+  setTimeout(renderAttackFeed, 4050);
+}
 function showDamageFeedback(events) {
   for (const ev of events) {
+    if (ev.type === 'eliminated' && ev.killer === YOU) addHit(ev.playerId, `You eliminated ${displayName(ev.playerId)}!`);
     if (ev.type !== 'damage') continue;
+    if (ev.by === YOU && ev.playerId !== YOU) addHit(ev.playerId, `You hit ${displayName(ev.playerId)} −${ev.amount}`);
     const li = playerListEl.querySelector(`li[data-player-id="${ev.playerId}"]`);
     if (!li) continue;
     const hpFill = li.querySelector('.hp-fill');
@@ -1320,7 +1325,7 @@ function showDamageFeedback(events) {
     if (ev.playerId === YOU) {
       myHpEl.classList.add('hit');
       setTimeout(() => myHpEl.classList.remove('hit'), 600);
-      if (ev.by) { hits.push({ by: ev.by, amount: ev.amount, until: Date.now() + 4000 }); setTimeout(renderAttackFeed, 4050); }
+      if (ev.by) addHit(ev.by, `${displayName(ev.by)} hit you −${ev.amount}`);
       li.classList.add('you-flash');
       setTimeout(() => li.classList.remove('you-flash'), 1000);
     }

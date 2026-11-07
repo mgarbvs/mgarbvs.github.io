@@ -153,7 +153,7 @@ button, input, select {
 #boardWrap { grid-column: 1; grid-row: 2; min-width: 0; position: relative; }
 #rackBar { grid-column: 1; grid-row: 3; min-width: 0; }
 #sidebar { grid-column: 2; grid-row: 1 / span 3; min-width: 0; }
-#sideToggle, #zoomBtn, #keyboard { display: none; }
+#sideToggle, #keyboard { display: none; }
 
 /* your own HP: big, always visible */
 #myHp { flex: 1; min-width: 100px; position: relative; height: 32px; background: var(--hp-bg); border-radius: 8px; overflow: hidden; }
@@ -315,12 +315,13 @@ button, input, select {
 #letterGrid button { min-height: 40px; }
 @media (max-width: 760px) {
   /* Phone layout: HUD on top, board fills the screen, rack + actions docked at the bottom,
-     players/log in a slide-up sheet. Tap a square to set the cursor, then type on the on-screen keyboard (or tap rack tiles). */
+     players/log in a slide-up sheet. Tap a square to set the cursor, then type on the on-screen keyboard (or tap rack tiles).
+     Pinch or double-tap the board to zoom. */
   body { padding: 8px; }
   #game:not([hidden]) { display: flex; flex-direction: column; height: calc(100dvh - 16px); gap: 6px; }
   #hud { gap: 6px; }
   #hudText { font-size: .8rem; }
-  #sideToggle, #zoomBtn { display: inline-block; padding: 6px 10px; min-width: 40px; }
+  #sideToggle { display: inline-block; padding: 6px 10px; min-width: 40px; }
   #boardWrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   #attackFeed { top: 8px; }
   #boardControls { display: none; }
@@ -401,7 +402,6 @@ button, input, select {
     <div id="hud">
       <div id="myHp"><div id="myHpFill"></div><span id="myHpText"></span></div>
       <span id="hudText"></span>
-      <button id="zoomBtn" class="btn" aria-label="Zoom board" aria-pressed="false">🔍</button>
       <button id="sideToggle" class="btn" aria-label="Players and log">☰</button>
     </div>
     <div id="boardWrap">
@@ -520,7 +520,6 @@ const myHpFillEl = document.getElementById('myHpFill');
 const myHpTextEl = document.getElementById('myHpText');
 const attackFeedEl = document.getElementById('attackFeed');
 const keyboardEl = document.getElementById('keyboard');
-const zoomBtn = document.getElementById('zoomBtn');
 const randomSpawnsInput = document.getElementById('randomSpawns');
 const lobbyRandomSpawnsInput = document.getElementById('lobbyRandomSpawns');
 document.getElementById('sideToggle').addEventListener('click', () => document.body.classList.toggle('show-side'));
@@ -567,7 +566,9 @@ let roundHighlight = { placed: new Set(), captured: new Set() };
 let highlightTimer = null;
 let displayNames = new Map();
 let hits = [];              // recent damage to you: {by, amount, until}
-let zoomed = false;         // phones: board fits the screen unless zoomed in
+let zoomed = false;         // board fits the screen unless pinched / double-tapped in
+let fitCell = 28;           // cell size (px) that fits the whole board
+let lastTap = null;         // for double-tap detection: {t, x, y, before}
 
 // ---- online state ----
 let onlineMode = false;
@@ -696,6 +697,20 @@ function fitBoard() {
   const clamped = Math.max(min, Math.min(max, size));
   zoomInput.value = clamped;
   boardEl.style.setProperty('--cell', `${clamped}px`);
+  fitCell = clamped;
+  zoomed = false;
+}
+// Resize cells, keeping the board point under (clientX, clientY) in place.
+function zoomAt(size, clientX, clientY) {
+  size = Math.max(fitCell, Math.min(48, size));
+  const before = boardEl.getBoundingClientRect();
+  const fx = (clientX - before.left) / before.width, fy = (clientY - before.top) / before.height;
+  boardEl.style.setProperty('--cell', `${size}px`);
+  zoomInput.value = size;
+  zoomed = size > fitCell;
+  const after = boardEl.getBoundingClientRect();
+  boardScrollEl.scrollLeft += after.left + fx * after.width - clientX;
+  boardScrollEl.scrollTop += after.top + fy * after.height - clientY;
 }
 function renderCell(r, c) {
   const el = cellEls[r][c];
@@ -861,8 +876,32 @@ function onCellClick(r, c) {
 boardEl.addEventListener('click', (e) => {
   const el = e.target.closest('.cell');
   if (!el) return;
+  // Double tap: undo what the first tap did (cursor / removed tile) and toggle zoom instead.
+  const now = Date.now();
+  if (lastTap && now - lastTap.t < 350 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 30) {
+    cursor = lastTap.before.cursor;
+    pending = lastTap.before.pending;
+    lastTap = null;
+    if (zoomed) fitBoard(); else zoomAt(36, e.clientX, e.clientY);
+    renderAll();
+    return;
+  }
+  lastTap = { t: now, x: e.clientX, y: e.clientY, before: { cursor: cursor && { ...cursor }, pending: pending.slice() } };
   onCellClick(Number(el.dataset.row), Number(el.dataset.col));
 });
+// Pinch to zoom the board (the page itself doesn't zoom: #boardScroll only allows panning).
+let pinch = null;
+const touchMid = (t) => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2, d: Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) });
+boardScrollEl.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 2) pinch = { d: touchMid(e.touches).d, size: parseFloat(boardEl.style.getPropertyValue('--cell')) || fitCell };
+}, { passive: true });
+boardScrollEl.addEventListener('touchmove', (e) => {
+  if (!pinch || e.touches.length !== 2) return;
+  e.preventDefault();
+  const m = touchMid(e.touches);
+  zoomAt(pinch.size * m.d / pinch.d, m.x, m.y);
+}, { passive: false });
+boardScrollEl.addEventListener('touchend', (e) => { if (e.touches.length < 2) pinch = null; });
 boardEl.addEventListener('dragover', (e) => {
   const el = e.target.closest('.cell');
   if (el && !state.board[Number(el.dataset.row)][Number(el.dataset.col)]) e.preventDefault();
@@ -1361,17 +1400,10 @@ newGameBtn.addEventListener('click', () => {
   }
   setupEl.hidden = false;
 });
-zoomBtn.addEventListener('click', () => {
-  zoomed = !zoomed;
-  zoomBtn.setAttribute('aria-pressed', String(zoomed));
-  if (!zoomed) { fitBoard(); return; }
-  boardEl.style.setProperty('--cell', '36px');
-  const at = cursor ?? pending[0];
-  if (at) cellEls[at.row][at.col].scrollIntoView({ block: 'center', inline: 'center' }); else scrollToTerritory();
-});
 new ResizeObserver(() => { if (state && !gameEl.hidden && !zoomed) fitBoard(); }).observe(boardScrollEl); // refit as the panels around the board change size
 zoomInput.addEventListener('input', () => {
-  boardEl.style.setProperty('--cell', `${zoomInput.value}px`);
+  const r = boardScrollEl.getBoundingClientRect();
+  zoomAt(Number(zoomInput.value), r.left + r.width / 2, r.top + r.height / 2);
 });
 
 // ---- game over ----
@@ -1415,7 +1447,7 @@ startBtn.addEventListener('click', () => {
   eliminationOrder = [];
   logLines = [];
   pending = []; cursor = { row: me().spawn.row, col: me().spawn.col, dir: 'H' }; selectedRackIndex = null;
-  swapMode = false; swapSelected = []; hits = []; zoomed = false; zoomBtn.setAttribute('aria-pressed', 'false');
+  swapMode = false; swapSelected = []; hits = []; lastTap = null;
   roundHighlight = { placed: new Set(), captured: new Set() };
   roundSummaryEl.hidden = true; roundSummaryEl.textContent = '';
   buildSeatColors();
@@ -1480,7 +1512,7 @@ function enterOnlineGame(view, cooldown, lobbyPlayers) {
   logLines = [];
   pending = (me().pending || []).map((t) => ({ ...t })); lastSynced = JSON.stringify(pending);
   cursor = me().hasPlayedEver ? null : { row: me().spawn.row, col: me().spawn.col, dir: 'H' }; selectedRackIndex = null;
-  swapMode = false; swapSelected = []; hits = []; zoomed = false; zoomBtn.setAttribute('aria-pressed', 'false');
+  swapMode = false; swapSelected = []; hits = []; lastTap = null;
   roundHighlight = { placed: new Set(), captured: new Set() };
   roundSummaryEl.hidden = true; roundSummaryEl.textContent = '';
   buildSeatColors();

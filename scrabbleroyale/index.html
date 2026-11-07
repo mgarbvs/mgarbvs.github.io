@@ -1,0 +1,1521 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scrabble Royale</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #eef2f0;
+  --board-surface: #dfe9e6;
+  --panel-bg: #ffffff;
+  --panel-border: #c3d0cd;
+  --text: #1f2b29;
+  --text-muted: #5b6a67;
+  --tile-bg: #e8c98e;
+  --tile-ink: #2a1f14;
+  --tile-blank-bg: #f2e6cb;
+  --storm: #c2413b;
+  --neutral: #93a19d;
+  --you-color: #7b4fd1;
+  --premium-tw: #b5574a;
+  --premium-dw: #d3a0aa;
+  --premium-tl: #3c5f78;
+  --premium-dl: #8fb4c0;
+  --accent: #2f6f5e;
+  --accent-text: #ffffff;
+  --focus: #1f6f5c;
+  --hp-fill: #3f8f6a;
+  --hp-bg: #d8e2df;
+  --overlay-bg: rgba(10, 20, 18, 0.55);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f201f;
+    --board-surface: #1f3a3d;
+    --panel-bg: #16302e;
+    --panel-border: #2c4b49;
+    --text: #eaf2f0;
+    --text-muted: #9db3af;
+    --tile-blank-bg: #3a3226;
+    --neutral: #6c7d79;
+    --premium-tw: #8a4a40;
+    --premium-dw: #9c6672;
+    --premium-tl: #4d7690;
+    --premium-dl: #6f97a3;
+    --accent: #4fa588;
+    --hp-fill: #4fa588;
+    --hp-bg: #22403d;
+    --focus: #7fd6bb;
+    --overlay-bg: rgba(0, 0, 0, 0.65);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f201f;
+  --board-surface: #1f3a3d;
+  --panel-bg: #16302e;
+  --panel-border: #2c4b49;
+  --text: #eaf2f0;
+  --text-muted: #9db3af;
+  --tile-blank-bg: #3a3226;
+  --neutral: #6c7d79;
+  --premium-tw: #8a4a40;
+  --premium-dw: #9c6672;
+  --premium-tl: #4d7690;
+  --premium-dl: #6f97a3;
+  --accent: #4fa588;
+  --hp-fill: #4fa588;
+  --hp-bg: #22403d;
+  --focus: #7fd6bb;
+  --overlay-bg: rgba(0, 0, 0, 0.65);
+  color-scheme: dark;
+}
+
+/* The Artifact skeleton supplies this reset at publish time; defined here too so the
+   page also behaves correctly when opened directly (e.g. via a local static server). */
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding-block: 16px;
+  padding-inline: 16px;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-variant-numeric: tabular-nums;
+  overflow-x: hidden;
+}
+h1, h2 { font-family: 'Zilla Slab', Georgia, serif; margin: 0 0 4px; }
+button, input, select {
+  font-family: inherit;
+  font-size: 1rem;
+}
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#app { max-width: 1100px; margin: 0 auto; }
+
+.btn {
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px 14px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.primary { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+/* ---- setup ---- */
+#setup { max-width: 420px; margin: 40px auto; }
+#setup .tagline { color: var(--text-muted); margin-top: 0; }
+#setup label { display: block; margin-top: 14px; font-weight: 600; }
+#setup input, #setup select { width: 100%; margin-top: 4px; padding: 8px; border-radius: 6px; border: 1px solid var(--panel-border); background: var(--bg); color: var(--text); }
+#startBtn { width: 100%; margin-top: 20px; }
+.how-to { margin-top: 18px; color: var(--text-muted); font-size: .92rem; }
+.how-to summary { cursor: pointer; color: var(--text); font-weight: 600; }
+.how-to ul { margin: 8px 0 0; padding-left: 20px; }
+.how-to li { margin-bottom: 4px; }
+
+#onlineSection { margin-top: 20px; border-top: 1px solid var(--panel-border); padding-top: 16px; }
+#onlineSection h2 { font-size: 1.05rem; }
+#joinRow { display: flex; gap: 8px; margin-top: 8px; }
+#joinRow input { flex: 1; text-transform: uppercase; margin-top: 0; }
+#onlineError { color: var(--storm); font-size: .88rem; min-height: 1.2em; margin-top: 8px; }
+
+/* ---- online lobby ---- */
+#lobby { max-width: 420px; margin: 40px auto; }
+#lobbyCode { font-family: 'IBM Plex Mono', monospace; font-size: 1.8rem; letter-spacing: .2em; }
+#lobbyPlayerList { list-style: none; margin: 14px 0; padding: 0; }
+#lobbyPlayerList li { padding: 6px 0; border-bottom: 1px dotted var(--panel-border); }
+#hostControls { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+#hostControls input { width: 70px; margin-top: 0; }
+#hostControls select { margin-top: 0; padding: 6px; border-radius: 6px; border: 1px solid var(--panel-border); background: var(--bg); color: var(--text); }
+#waitingForHost { color: var(--text-muted); margin-top: 14px; }
+
+/* ---- game layout ---- */
+#game {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: auto auto;
+  gap: 16px;
+}
+#boardWrap { grid-column: 1; grid-row: 1; min-width: 0; }
+#rackBar { grid-column: 1; grid-row: 2; min-width: 0; }
+#sidebar { grid-column: 2; grid-row: 1 / span 2; min-width: 0; }
+#hud, #sideToggle, #backBtn { display: none; }
+
+#boardControls { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--text-muted); font-size: .9rem; }
+#boardControls input[type="range"] { flex: 1; max-width: 160px; }
+
+#boardScroll {
+  background: var(--board-surface);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  overflow: auto;
+  height: min(64vh, 620px, 100vw - 32px);
+}
+#board {
+  display: grid;
+  width: max-content;
+  margin: 0 auto;
+  position: relative;
+}
+#movePreviewBadge {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 6px));
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: .8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+#movePreviewBadge.good { color: var(--accent); border-color: var(--accent); }
+#movePreviewBadge.bad { color: var(--storm); border-color: var(--storm); }
+.cell {
+  width: var(--cell, 28px);
+  height: var(--cell, 28px);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--panel-border);
+  font-size: calc(var(--cell, 28px) * 0.4);
+  color: var(--text-muted);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  cursor: pointer;
+}
+.cell.empty { background: var(--board-surface); }
+.cell.prem-dl { background: var(--premium-dl); color: #10201f; }
+.cell.prem-tl { background: var(--premium-tl); color: #f4f8f7; }
+.cell.prem-dw { background: var(--premium-dw); color: #10201f; }
+.cell.prem-tw { background: var(--premium-tw); color: #f4f8f7; }
+.cell.spawn { font-size: calc(var(--cell, 28px) * 0.55); color: var(--you-color); font-weight: 700; }
+.cell.cursor { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
+.cell.cursor .cursor-arrow { color: var(--accent); font-weight: 700; font-size: calc(var(--cell, 28px) * 0.55); }
+.cell.pending { background: var(--tile-bg); border: 2px dashed var(--owner-color, var(--accent)); }
+
+.cell.tile {
+  background: var(--tile-bg);
+  border-radius: 3px;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .18);
+}
+.cell.tile.owned { box-shadow: inset 0 -4px 0 var(--owner-color, var(--neutral)); background: color-mix(in srgb, var(--tile-bg) 78%, var(--owner-color, var(--neutral)) 22%); }
+.cell.tile.neutral { box-shadow: inset 0 -4px 0 var(--neutral); }
+.cell.tile .tl { color: var(--tile-ink); font-family: 'Zilla Slab', Georgia, serif; font-weight: 700; }
+.cell.tile .tv { position: absolute; bottom: 1px; right: 2px; font-size: .45em; font-family: 'IBM Plex Mono', monospace; color: var(--tile-ink); }
+.cell.tile.blank-tile .tl { font-style: italic; }
+
+.cell.glow-placed { outline: 2px solid var(--owner-color, var(--accent)); outline-offset: -2px; }
+.cell.glow-captured { outline: 2px solid var(--storm); outline-offset: -2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .cell.glow-placed { animation: glowPulse 1.2s ease-out 1; }
+  .cell.glow-captured { animation: glowPulse 1.2s ease-out 1; }
+}
+@keyframes glowPulse {
+  from { box-shadow: 0 0 0 4px rgba(255,255,255,.35); }
+  to { box-shadow: none; }
+}
+
+/* ---- rack / actions ---- */
+#rackBar { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 10px; padding: 12px; }
+#pouchRow, #giveRow { margin-bottom: 10px; }
+.pouch-label { font-size: .85rem; color: var(--text-muted); margin-bottom: 4px; }
+.tile-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.rack-tile, .pouch-tile {
+  min-width: 44px;
+  min-height: 44px;
+  background: var(--tile-bg);
+  color: var(--tile-ink);
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 4px;
+  font-family: 'Zilla Slab', Georgia, serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rack-tile .tv, .pouch-tile .tv { position: absolute; bottom: 2px; right: 4px; font-size: .5rem; font-family: 'IBM Plex Mono', monospace; }
+/* a blank is a real tile with nothing printed on it: same face as the others, just no letter or value */
+.rack-tile.selected { outline: 3px solid var(--accent); outline-offset: 1px; }
+#rack { margin-bottom: 10px; }
+#actions { display: flex; flex-wrap: wrap; gap: 8px; }
+#preview { margin-top: 10px; min-height: 1.4em; font-weight: 600; }
+#preview.good { color: var(--accent); }
+#preview.bad { color: var(--storm); }
+#roundSummary { margin-top: 6px; font-size: .9rem; color: var(--text-muted); }
+#hints { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.hint-btn { text-align: left; }
+
+/* ---- sidebar ---- */
+#sidebar { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+#roundInfo { font-size: .92rem; }
+#playerList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.player-row { display: grid; grid-template-columns: 12px 1fr auto; gap: 6px; align-items: center; font-size: .9rem; border-radius: 6px; }
+.player-row.eliminated .player-name { text-decoration: line-through; color: var(--text-muted); }
+.player-row.you-flash { background: color-mix(in srgb, var(--storm) 25%, transparent); }
+.swatch { width: 12px; height: 12px; border-radius: 50%; background: var(--swatch-color, var(--neutral)); }
+.hp-row { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; position: relative; }
+.hp-bar { flex: 1; height: 6px; background: var(--hp-bg); border-radius: 3px; overflow: hidden; }
+.hp-fill { height: 100%; background: var(--hp-fill); }
+.hp-fill.dmg-flash { background: var(--storm); }
+.dmg-float { position: absolute; right: 0; top: -4px; color: var(--storm); font-weight: 700; font-size: .8rem; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .hp-fill { transition: background-color .25s ease; }
+  .dmg-float { animation: dmgFloat 1.1s ease-out forwards; }
+}
+@keyframes dmgFloat {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-16px); }
+}
+#log { list-style: none; margin: 0; padding: 0; font-size: .85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow: auto; }
+#log li { border-bottom: 1px dotted var(--panel-border); padding-bottom: 4px; }
+#log li.log-round { border-bottom: none; font-weight: 700; color: var(--text); margin-top: 8px; }
+
+/* ---- overlays ---- */
+.overlay { position: fixed; inset: 0; background: var(--overlay-bg); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+.overlay-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 10px; padding: 24px; max-width: 340px; width: 100%; text-align: center; }
+#letterGrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin: 14px 0; }
+#letterGrid button { min-height: 40px; }
+@media (max-width: 760px) {
+  /* Phone layout: HUD on top, board fills the screen, rack + actions docked at the bottom,
+     players/log in a slide-up sheet. Tap a square to set the cursor, then tap rack tiles to type. */
+  body { padding: 8px; }
+  #game:not([hidden]) { display: flex; flex-direction: column; height: calc(100dvh - 16px); gap: 6px; }
+  #hud { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .88rem; font-weight: 600; }
+  #sideToggle { display: inline-block; padding: 6px 10px; }
+  #boardWrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  #boardControls { display: none; }
+  #boardScroll { height: auto; flex: 1; min-height: 0; touch-action: pan-x pan-y; }
+  #rackBar { padding: 8px; flex: none; }
+  #rack { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 6px; }
+  .rack-tile, .pouch-tile { min-width: 42px; min-height: 46px; }
+  #actions { flex-wrap: nowrap; overflow-x: auto; }
+  #actions .btn { padding: 12px 14px; white-space: nowrap; }
+  #playBtn { flex: 1; min-width: 90px; }
+  #backBtn { display: inline-block; }
+  #preview { margin-top: 6px; font-size: .88rem; }
+  #hintBtn, #shuffleBtn { display: none; }
+  #sidebar { position: fixed; left: 0; right: 0; bottom: 0; max-height: 70dvh; overflow: auto; z-index: 40; border-radius: 12px 12px 0 0; transform: translateY(105%); transition: transform .2s; }
+  body.show-side #sidebar { transform: none; }
+}
+</style>
+
+<div id="app">
+  <section id="setup" class="panel">
+    <h1>Scrabble Royale</h1>
+    <p class="tagline">Words. Territory. Escalating damage.</p>
+    <label for="botCount">Bots</label>
+    <input id="botCount" type="number" min="1" max="99" value="3" />
+    <label for="botDifficulty">Bot difficulty</label>
+    <select id="botDifficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select>
+    <label for="seedInput">Seed (optional)</label>
+    <input id="seedInput" type="text" placeholder="random" />
+    <button id="startBtn" class="btn primary" disabled>Loading dictionary…</button>
+    <details class="how-to">
+      <summary>How to play</summary>
+      <ul>
+        <li>Goal: be the last player standing.</li>
+        <li>Every word you play must connect to an existing tile — yours, an opponent's, or neutral.</li>
+        <li>Never played yet? Your word may instead cover your ★ spawn square, even in isolation.</li>
+        <li>Capturing a tile in your word deals damage split by how many of an opponent's tiles you captured.</li>
+        <li>It's real-time: tiles you lay down show to everyone as dashed <em>pending</em> tiles. Commit your word (Enter) after your cooldown — but if an opponent lands a word through your squares first, yours is blocked.</li>
+        <li>Damage escalates every 30 seconds; stay active or you'll slowly lose HP.</li>
+        <li>Eliminate a player and their rack becomes your loot, until your next action.</li>
+        <li>If a minute passes with no play landing anywhere, the game ends — highest HP wins.</li>
+      </ul>
+    </details>
+
+    <div id="onlineSection" hidden>
+      <h2>Play online</h2>
+      <label for="onlineName">Your name</label>
+      <input id="onlineName" type="text" maxlength="20" placeholder="Name" />
+      <button id="createLobbyBtn" class="btn primary" style="width:100%; margin-top:10px;">Create lobby</button>
+      <div id="joinRow">
+        <input id="joinCodeInput" type="text" maxlength="4" placeholder="CODE" />
+        <button id="joinLobbyBtn" class="btn">Join</button>
+      </div>
+      <p id="onlineError"></p>
+    </div>
+  </section>
+
+  <section id="lobby" class="panel" hidden>
+    <h1>Lobby <span id="lobbyCode"></span></h1>
+    <button id="copyCodeBtn" class="btn">Copy code</button>
+    <ul id="lobbyPlayerList"></ul>
+    <div id="hostControls" hidden>
+      <label for="lobbyBotCount">Bots</label>
+      <input id="lobbyBotCount" type="number" min="0" max="99" value="0" />
+      <label for="lobbyBotDifficulty">Bot difficulty</label>
+      <select id="lobbyBotDifficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select>
+      <button id="lobbyStartBtn" class="btn primary">Start game</button>
+    </div>
+    <p id="waitingForHost" hidden>Waiting for the host to start…</p>
+  </section>
+
+  <section id="game" hidden>
+    <div id="hud"><span id="hudText"></span><button id="sideToggle" class="btn">Players</button></div>
+    <div id="boardWrap">
+      <div id="boardControls">
+        <label for="zoom">Zoom</label>
+        <input id="zoom" type="range" min="16" max="44" step="2" value="28" />
+      </div>
+      <div id="boardScroll"><div id="board"></div></div>
+    </div>
+
+    <div id="rackBar">
+      <div id="pouchRow" hidden>
+        <div class="pouch-label" id="pouchLabel">Loot</div>
+        <div class="tile-row" id="pouchTiles"></div>
+      </div>
+      <div id="rack" class="tile-row"></div>
+      <div id="actions">
+        <button id="playBtn" class="btn primary" disabled>Play</button>
+        <button id="backBtn" class="btn" aria-label="Delete last letter">⌫</button>
+        <button id="recallBtn" class="btn">Recall</button>
+        <button id="shuffleBtn" class="btn">Shuffle</button>
+        <button id="swapBtn" class="btn">Swap tiles</button>
+        <button id="cancelSwapBtn" class="btn" hidden>Cancel</button>
+        <button id="passBtn" class="btn">Pass</button>
+        <button id="hintBtn" class="btn">Hint</button>
+      </div>
+      <div id="preview" aria-live="polite"></div>
+      <div id="roundSummary" hidden aria-live="polite"></div>
+      <div id="hints" hidden></div>
+    </div>
+
+    <aside id="sidebar">
+      <div id="roundInfo"></div>
+      <div id="roundClock" aria-live="off"></div>
+      <ul id="playerList"></ul>
+      <details class="how-to">
+        <summary>How to play</summary>
+        <ul>
+          <li>Goal: be the last player standing.</li>
+          <li>Every word you play must connect to an existing tile — yours, an opponent's, or neutral.</li>
+          <li>Never played yet? Your word may instead cover your ★ spawn square, even in isolation.</li>
+          <li>Capturing a tile deals damage split by how many of an opponent's tiles you captured.</li>
+          <li>It's real-time: tiles you lay down show to everyone as dashed <em>pending</em> tiles. Commit your word (Enter) after your cooldown — but if an opponent lands a word through your squares first, yours is blocked.</li>
+        <li>Damage escalates every 30 seconds; stay active or you'll slowly lose HP.</li>
+          <li>Eliminate a player and their rack becomes your loot, until your next action.</li>
+          <li>If a minute passes with no play landing anywhere, the game ends — highest HP wins.</li>
+        </ul>
+      </details>
+      <ol id="log"></ol>
+    </aside>
+  </section>
+
+
+  <div id="letterPicker" class="overlay" hidden>
+    <div class="overlay-card">
+      <p>Choose a letter for the blank tile</p>
+      <div id="letterGrid"></div>
+      <button id="pickerCancel" class="btn">Cancel</button>
+    </div>
+  </div>
+
+  <div id="gameOver" class="overlay" hidden>
+    <div class="overlay-card">
+      <h2 id="gameOverTitle"></h2>
+      <p id="gameOverPlacement"></p>
+      <button id="newGameBtn" class="btn primary">New game</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { resolveRound, validatePlay, damageMultiplier, TICK_SECONDS, BLANK, premiumAt } from './engine.js';
+import { generateMoves } from './movegen.js';
+import { RealtimeGame, botKind, botStyle } from './realtime.js';
+
+let YOU = 'you'; // 'you' locally; the server-assigned playerId (e.g. 'p2') once online
+const LETTER_VALUES = {
+  a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,l:1,m:3,n:1,
+  o:1,p:3,q:10,r:1,s:1,t:1,u:1,v:4,w:4,x:8,y:4,z:10,
+};
+const PREM_CLASS = { l: 'dl', L: 'tl', w: 'dw', W: 'tw' };
+const PREM_LABEL = { l: 'DL', L: 'TL', w: 'DW', W: 'TW' };
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---- elements ----
+const setupEl = document.getElementById('setup');
+const gameEl = document.getElementById('game');
+const startBtn = document.getElementById('startBtn');
+const botCountInput = document.getElementById('botCount');
+const botDifficultyInput = document.getElementById('botDifficulty');
+const seedInput = document.getElementById('seedInput');
+const boardEl = document.getElementById('board');
+const boardScrollEl = document.getElementById('boardScroll');
+const zoomInput = document.getElementById('zoom');
+const rackEl = document.getElementById('rack');
+const pouchRowEl = document.getElementById('pouchRow');
+const pouchLabelEl = document.getElementById('pouchLabel');
+const pouchTilesEl = document.getElementById('pouchTiles');
+const playBtn = document.getElementById('playBtn');
+const recallBtn = document.getElementById('recallBtn');
+const shuffleBtn = document.getElementById('shuffleBtn');
+const swapBtn = document.getElementById('swapBtn');
+const cancelSwapBtn = document.getElementById('cancelSwapBtn');
+const passBtn = document.getElementById('passBtn');
+const hintBtn = document.getElementById('hintBtn');
+const previewEl = document.getElementById('preview');
+const roundSummaryEl = document.getElementById('roundSummary');
+const hintsEl = document.getElementById('hints');
+const movePreviewBadgeEl = document.createElement('div');
+movePreviewBadgeEl.id = 'movePreviewBadge';
+movePreviewBadgeEl.hidden = true;
+const roundInfoEl = document.getElementById('roundInfo');
+const roundClockEl = document.getElementById('roundClock');
+setInterval(() => {
+  if (!state || gameEl.hidden) { roundClockEl.textContent = ''; return; }
+  const secs = Math.ceil((cooldownUntil - Date.now()) / 1000);
+  roundClockEl.textContent = secs > 0 ? `⏱ Cooldown ${secs}s` : '✔ Ready — commit your word any time';
+  const you = me();
+  hudTextEl.textContent = `${Math.max(0, you.hp)} HP · ${secs > 0 ? `⏱ ${secs}s` : '✔ Ready'} · ${damageStatusText().split(' — ')[0]}`;
+}, 250);
+const hudTextEl = document.getElementById('hudText');
+document.getElementById('sideToggle').addEventListener('click', () => document.body.classList.toggle('show-side'));
+document.getElementById('backBtn').addEventListener('click', () => {
+  const last = pending.pop();
+  if (last) cursor = { row: last.row, col: last.col, dir: cursor ? cursor.dir : 'H' };
+  renderAll();
+});
+const playerListEl = document.getElementById('playerList');
+const logEl = document.getElementById('log');
+const letterPickerEl = document.getElementById('letterPicker');
+const letterGridEl = document.getElementById('letterGrid');
+const pickerCancelBtn = document.getElementById('pickerCancel');
+const gameOverEl = document.getElementById('gameOver');
+const gameOverTitleEl = document.getElementById('gameOverTitle');
+const gameOverPlacementEl = document.getElementById('gameOverPlacement');
+const newGameBtn = document.getElementById('newGameBtn');
+const onlineSectionEl = document.getElementById('onlineSection');
+const onlineNameInput = document.getElementById('onlineName');
+const createLobbyBtn = document.getElementById('createLobbyBtn');
+const joinCodeInput = document.getElementById('joinCodeInput');
+const joinLobbyBtn = document.getElementById('joinLobbyBtn');
+const onlineErrorEl = document.getElementById('onlineError');
+const lobbyEl = document.getElementById('lobby');
+const lobbyCodeEl = document.getElementById('lobbyCode');
+const copyCodeBtn = document.getElementById('copyCodeBtn');
+const lobbyPlayerListEl = document.getElementById('lobbyPlayerList');
+const hostControlsEl = document.getElementById('hostControls');
+const lobbyBotCountInput = document.getElementById('lobbyBotCount');
+const lobbyBotDifficultyInput = document.getElementById('lobbyBotDifficulty');
+const lobbyStartBtn = document.getElementById('lobbyStartBtn');
+const waitingForHostEl = document.getElementById('waitingForHost');
+
+// ---- game state (client) ----
+let dict = null;
+let state = null;
+let seatColors = new Map();
+let cellEls = [];
+let pending = [];           // {row, col, letter, blank}
+let cursor = null;          // {row, col, dir}
+let selectedRackIndex = null;
+let swapMode = false;
+let swapSelected = [];
+let lootTake = [];
+let lootGive = [];
+let lootFrom = null;
+let pickerOpen = false;
+let pickerTarget = null;
+let eliminationOrder = [];
+let logLines = [];
+let roundHighlight = { placed: new Set(), captured: new Set() };
+let highlightTimer = null;
+let displayNames = new Map();
+
+// ---- online state ----
+let onlineMode = false;
+let myPlayerId = null;
+let authToken = null;
+let lobbyCode = null;
+let isHost = false;
+let eventSource = null;
+let cooldownUntil = 0;      // ms epoch; commits are refused until then
+let game = null;            // offline: the local RealtimeGame
+let lastSynced = '[]';      // last pending tiles sent to the game/server
+
+function me() { return state.players.find((p) => p.id === YOU); }
+
+// ---- dictionary ----
+fetch('./enable1.txt')
+  .then((r) => r.text())
+  .then((text) => {
+    dict = new Set(text.split('\n').map((w) => w.trim().toLowerCase()).filter((w) => w.length >= 2));
+    startBtn.disabled = false;
+    startBtn.textContent = 'Start game';
+  })
+  .catch(() => { startBtn.textContent = 'Failed to load dictionary'; });
+
+// ---- helpers ----
+function subtractMultiset(arr, remove) {
+  const copy = arr.slice();
+  for (const x of remove) {
+    const i = copy.indexOf(x);
+    if (i >= 0) copy.splice(i, 1);
+  }
+  return copy;
+}
+function botDisplayName(id) {
+  return `Bot ${Number(id.slice(3))} · ${botStyle(botKind(id), botDifficultyInput.value)}`;
+}
+function buildLocalDisplayNames() {
+  displayNames = new Map();
+  displayNames.set(YOU, 'You');
+  for (const p of state.players) if (p.id !== YOU) displayNames.set(p.id, botDisplayName(p.id));
+}
+function buildOnlineDisplayNames(players) {
+  displayNames = new Map();
+  for (const p of players) {
+    displayNames.set(p.id, p.id === myPlayerId ? 'You' : p.name);
+  }
+}
+function displayName(id) {
+  return displayNames.get(id) || id;
+}
+function possessive(id, cap) {
+  if (id === YOU) return cap ? 'Your' : 'your';
+  return `${displayName(id)}'s`;
+}
+function colorFor(id) {
+  return seatColors.get(id) || 'var(--neutral)';
+}
+function buildSeatColors() {
+  seatColors = new Map();
+  for (const p of state.players) {
+    if (p.id === YOU) { seatColors.set(p.id, 'var(--you-color)'); continue; }
+    let hue = (p.seat * 137.508) % 360;
+    if (hue >= 25 && hue <= 65) hue += 170; // shift out of the tile-tan band (to blue, clear of seat 1's green)
+    if (Math.abs(hue - 260) < 30) hue += 60; // and away from --you-color's violet
+    seatColors.set(p.id, `hsl(${hue.toFixed(1)} 60% 45%)`);
+  }
+}
+function countOwnedTiles() {
+  const m = new Map();
+  for (const row of state.board) for (const cell of row) if (cell && cell.owner) m.set(cell.owner, (m.get(cell.owner) || 0) + 1);
+  return m;
+}
+function isOccupied(r, c) {
+  return !!state.board[r][c] || pending.some((t) => t.row === r && t.col === c);
+}
+function pendingConsumed() {
+  return pending.map((t) => (t.blank ? BLANK : t.letter));
+}
+function effectiveRack() {
+  let r = subtractMultiset(me().rack, lootGive);
+  r = r.concat(lootTake);
+  return r;
+}
+function displayedRack() {
+  return subtractMultiset(effectiveRack(), pendingConsumed());
+}
+function giveMode() {
+  return effectiveRack().length > 7;
+}
+function buildLoot() {
+  if (lootTake.length === 0 && lootGive.length === 0) return undefined;
+  return { take: lootTake.slice(), give: lootGive.slice() };
+}
+function friendlyReason(reason) {
+  const wordMatch = /^not a word: (.+)$/.exec(reason);
+  if (wordMatch) return `"${wordMatch[1].toUpperCase()}" isn't a word.`;
+  const map = {
+    'tiles must be in one row or column': 'Tiles must all be in one row or column.',
+    'gap in play': 'There’s a gap in your word — fill it or split your tiles.',
+    'no tiles placed': 'Place at least one tile.',
+    'no word formed': 'That doesn’t form a word.',
+    'first play must cover your spawn square or connect to an existing tile': 'Your first word must cover your ★ spawn square, or connect to an existing tile.',
+    'play must connect to an existing tile': 'Must connect to an existing tile.',
+    'square already occupied': 'That square is already occupied.',
+    'tile not in rack': 'You don’t have that tile.',
+    'no blank tile available': 'You’re out of blank tiles.',
+    'duplicate tile position': 'You can’t place two tiles on the same square.',
+    'tile out of bounds': 'That’s off the board.',
+    'rack would exceed 7 tiles': 'Your rack would have more than 7 tiles — give one back.',
+    'loot pouch does not contain that tile': 'That tile isn’t in your loot pouch.',
+    'rack does not contain that tile to give': 'You don’t have that tile to give back.',
+    'exchange 1-7 tiles': 'Exchange between 1 and 7 tiles.',
+    'bag does not hold enough tiles': 'The bag doesn’t hold enough tiles for that.',
+    'rack does not contain that tile': 'You don’t have that tile.',
+  };
+  return map[reason] || (reason.charAt(0).toUpperCase() + reason.slice(1));
+}
+
+// ---- board dom ----
+function buildBoardDom() {
+  const side = state.boardSide;
+  boardEl.innerHTML = '';
+  boardEl.style.setProperty('--side', side);
+  boardEl.style.gridTemplateColumns = `repeat(${side}, var(--cell, 28px))`;
+  cellEls = Array.from({ length: side }, () => new Array(side));
+  for (let r = 0; r < side; r++) {
+    for (let c = 0; c < side; c++) {
+      const el = document.createElement('div');
+      el.dataset.row = String(r);
+      el.dataset.col = String(c);
+      boardEl.appendChild(el);
+      cellEls[r][c] = el;
+    }
+  }
+  boardEl.appendChild(movePreviewBadgeEl);
+}
+function fitBoard() {
+  const min = window.matchMedia('(max-width: 760px)').matches ? 32 : Number(zoomInput.min); // phones: scroll rather than shrink to unreadable
+  const max = Number(zoomInput.max);
+  const size = Math.floor(Math.min(boardScrollEl.clientWidth, boardScrollEl.clientHeight) / state.boardSide) - 1;
+  const clamped = Math.max(min, Math.min(max, size));
+  zoomInput.value = clamped;
+  boardEl.style.setProperty('--cell', `${clamped}px`);
+}
+function renderCell(r, c) {
+  const el = cellEls[r][c];
+  const cell = state.board[r][c];
+  el.className = 'cell';
+  el.innerHTML = '';
+  el.style.removeProperty('--owner-color');
+
+  if (cell) {
+    el.classList.add('tile');
+    el.classList.add(cell.owner ? 'owned' : 'neutral');
+    if (cell.owner) el.style.setProperty('--owner-color', colorFor(cell.owner));
+    if (cell.blank) el.classList.add('blank-tile');
+    const tl = document.createElement('span');
+    tl.className = 'tl';
+    tl.textContent = cell.letter.toUpperCase();
+    el.appendChild(tl);
+    if (!cell.blank) {
+      const tv = document.createElement('span');
+      tv.className = 'tv';
+      tv.textContent = String(LETTER_VALUES[cell.letter] ?? '');
+      el.appendChild(tv);
+    }
+  } else {
+    el.classList.add('empty');
+    const prem = premiumAt(r, c);
+    if (prem !== '.') {
+      el.classList.add('prem-' + PREM_CLASS[prem]);
+      el.textContent = PREM_LABEL[prem];
+    }
+    const you = me();
+    if (r === you.spawn.row && c === you.spawn.col && !you.hasPlayedEver) {
+      el.classList.add('spawn');
+      el.textContent = '★';
+    }
+    const theirs = state.players.find((p) => p.id !== YOU && p.pending?.some((t) => t.row === r && t.col === c));
+    const pend = pending.find((t) => t.row === r && t.col === c) ?? theirs?.pending.find((t) => t.row === r && t.col === c);
+    if (pend) {
+      el.classList.add('pending');
+      if (theirs) el.style.setProperty('--owner-color', colorFor(theirs.id));
+      el.textContent = '';
+      const tl = document.createElement('span');
+      tl.className = 'tl';
+      tl.textContent = pend.letter.toUpperCase();
+      el.appendChild(tl);
+    }
+    if (cursor && cursor.row === r && cursor.col === c) {
+      el.classList.add('cursor');
+      const arrow = document.createElement('span');
+      arrow.className = 'cursor-arrow';
+      arrow.textContent = cursor.dir === 'H' ? '→' : '↓';
+      el.appendChild(arrow);
+    }
+  }
+  const key = `${r},${c}`;
+  if (roundHighlight.placed.has(key)) el.classList.add('glow-placed');
+  if (roundHighlight.captured.has(key)) el.classList.add('glow-captured');
+}
+function renderBoard() {
+  for (let r = 0; r < state.boardSide; r++) for (let c = 0; c < state.boardSide; c++) renderCell(r, c);
+}
+
+// ---- rack / pouch ----
+function makeTileEl(letter, tag) {
+  const el = document.createElement(tag === 'button' ? 'button' : 'div');
+  el.className = letter === BLANK ? 'rack-tile blank' : 'rack-tile';
+  const tl = document.createElement('span');
+  tl.textContent = letter === BLANK ? '' : letter.toUpperCase();
+  el.appendChild(tl);
+  if (letter !== BLANK) {
+    const tv = document.createElement('span');
+    tv.className = 'tv';
+    tv.textContent = String(LETTER_VALUES[letter] ?? '');
+    el.appendChild(tv);
+  }
+  return el;
+}
+function renderRack() {
+  rackEl.innerHTML = '';
+  const rack = displayedRack();
+  const over = giveMode();
+  rack.forEach((letter, idx) => {
+    const el = makeTileEl(letter, 'button');
+    el.draggable = true;
+    if (!swapMode && !over && selectedRackIndex === idx) el.classList.add('selected');
+    if (swapMode && swapSelected.includes(idx)) el.classList.add('selected');
+    el.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', String(idx)); });
+    el.addEventListener('click', () => onRackTileClick(idx));
+    rackEl.appendChild(el);
+  });
+
+  pouchRowEl.hidden = state.gameOver || me().lootPouch.length === 0;
+  if (!pouchRowEl.hidden) {
+    pouchLabelEl.textContent = lootFrom ? `Loot from ${displayName(lootFrom)}` : 'Loot';
+    pouchTilesEl.innerHTML = '';
+    const pouch = subtractMultiset(me().lootPouch, lootTake);
+    pouch.forEach((letter) => {
+      const el = makeTileEl(letter, 'button');
+      el.classList.add('pouch-tile');
+      el.addEventListener('click', () => { lootTake.push(letter); renderAll(); });
+      pouchTilesEl.appendChild(el);
+    });
+  } else {
+    lootFrom = null;
+  }
+}
+function onRackTileClick(idx) {
+  if (pickerOpen) return;
+  const rack = displayedRack();
+  const letter = rack[idx];
+  if (swapMode) {
+    const pos = swapSelected.indexOf(idx);
+    if (pos >= 0) swapSelected.splice(pos, 1); else swapSelected.push(idx);
+    renderAll();
+    return;
+  }
+  if (giveMode()) {
+    lootGive.push(letter);
+    renderAll();
+    return;
+  }
+  if (cursor && selectedRackIndex === null) { // tap a square, then tap rack tiles to spell (works without a keyboard)
+    if (letter === BLANK) { openLetterPicker(cursor.row, cursor.col); return; }
+    pending.push({ row: cursor.row, col: cursor.col, letter, blank: false });
+    advanceCursor();
+    renderAll();
+    return;
+  }
+  selectedRackIndex = selectedRackIndex === idx ? null : idx;
+  renderAll();
+}
+
+// ---- placement ----
+function placeTileAt(r, c, letter) {
+  if (letter === BLANK) { openLetterPicker(r, c); return; }
+  pending.push({ row: r, col: c, letter, blank: false });
+  renderAll();
+}
+function openLetterPicker(r, c) {
+  pickerOpen = true;
+  pickerTarget = { row: r, col: c };
+  letterPickerEl.hidden = false;
+}
+function chooseLetter(letter) {
+  pending.push({ row: pickerTarget.row, col: pickerTarget.col, letter: letter.toLowerCase(), blank: true });
+  if (cursor && cursor.row === pickerTarget.row && cursor.col === pickerTarget.col) advanceCursor();
+  cancelPicker();
+  renderAll();
+}
+function cancelPicker() {
+  pickerOpen = false;
+  pickerTarget = null;
+  letterPickerEl.hidden = true;
+}
+'abcdefghijklmnopqrstuvwxyz'.split('').forEach((ch) => {
+  const btn = document.createElement('button');
+  btn.className = 'btn';
+  btn.textContent = ch.toUpperCase();
+  btn.addEventListener('click', () => chooseLetter(ch));
+  letterGridEl.appendChild(btn);
+});
+pickerCancelBtn.addEventListener('click', cancelPicker);
+
+function onCellClick(r, c) {
+  if (pickerOpen || swapMode) return;
+  if (state.board[r][c]) return;
+  const pendIdx = pending.findIndex((t) => t.row === r && t.col === c);
+  if (pendIdx !== -1) { pending.splice(pendIdx, 1); renderAll(); return; }
+  if (selectedRackIndex !== null) {
+    const letter = displayedRack()[selectedRackIndex];
+    selectedRackIndex = null;
+    placeTileAt(r, c, letter);
+    return;
+  }
+  if (cursor && cursor.row === r && cursor.col === c) cursor.dir = cursor.dir === 'H' ? 'V' : 'H';
+  else cursor = { row: r, col: c, dir: 'H' };
+  renderAll();
+}
+boardEl.addEventListener('click', (e) => {
+  const el = e.target.closest('.cell');
+  if (!el) return;
+  onCellClick(Number(el.dataset.row), Number(el.dataset.col));
+});
+boardEl.addEventListener('dragover', (e) => {
+  const el = e.target.closest('.cell');
+  if (el && !state.board[Number(el.dataset.row)][Number(el.dataset.col)]) e.preventDefault();
+});
+boardEl.addEventListener('drop', (e) => {
+  const el = e.target.closest('.cell');
+  if (!el || pickerOpen || swapMode) return;
+  const r = Number(el.dataset.row), c = Number(el.dataset.col);
+  if (state.board[r][c]) return;
+  e.preventDefault();
+  const idx = Number(e.dataTransfer.getData('text/plain'));
+  const letter = displayedRack()[idx];
+  if (letter === undefined) return;
+  placeTileAt(r, c, letter);
+});
+
+// ---- typing ----
+function advanceCursor() {
+  const dr = cursor.dir === 'V' ? 1 : 0;
+  const dc = cursor.dir === 'H' ? 1 : 0;
+  let r = cursor.row + dr, c = cursor.col + dc;
+  while (r >= 0 && c >= 0 && r < state.boardSide && c < state.boardSide && isOccupied(r, c)) { r += dr; c += dc; }
+  cursor = (r >= 0 && c >= 0 && r < state.boardSide && c < state.boardSide) ? { row: r, col: c, dir: cursor.dir } : null;
+}
+function typeLetter(letter) {
+  const avail = displayedRack();
+  let tile;
+  if (avail.includes(letter)) tile = { letter, blank: false };
+  else if (avail.includes(BLANK)) tile = { letter, blank: true };
+  else return;
+  pending.push({ row: cursor.row, col: cursor.col, letter: tile.letter, blank: tile.blank });
+  advanceCursor();
+  renderAll();
+}
+document.addEventListener('keydown', (e) => {
+  if (gameEl.hidden) return;
+  if (pickerOpen) { if (e.key === 'Escape') cancelPicker(); return; }
+  if (swapMode) return;
+  if (e.key === 'Enter') { e.preventDefault(); if (!playBtn.disabled) playBtn.click(); return; }
+  if (e.key === 'Escape') { pending = []; renderAll(); return; }
+  if (e.key === 'Backspace') {
+    e.preventDefault();
+    const last = pending.pop();
+    if (last) cursor = { row: last.row, col: last.col, dir: cursor ? cursor.dir : 'H' };
+    renderAll();
+    return;
+  }
+  if (cursor && /^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); typeLetter(e.key.toLowerCase()); }
+});
+
+// ---- preview ----
+function updateMovePreviewBadge(text, cls) {
+  // Anchor above the word's first (top/left-most) tile so the badge never covers a pending letter.
+  const first = pending.reduce((a, t) => (t.row + t.col < a.row + a.col ? t : a));
+  const cell = cellEls[first.row][first.col];
+  movePreviewBadgeEl.style.left = `${cell.offsetLeft + cell.offsetWidth / 2}px`;
+  movePreviewBadgeEl.style.top = `${cell.offsetTop}px`;
+  movePreviewBadgeEl.textContent = text;
+  movePreviewBadgeEl.className = cls;
+  movePreviewBadgeEl.hidden = false;
+}
+function updatePreview() {
+  if (!dict) { previewEl.textContent = 'Loading dictionary…'; previewEl.className = ''; playBtn.disabled = true; movePreviewBadgeEl.hidden = true; return; }
+  if (pending.length === 0) {
+    if (lootTake.length || lootGive.length) {
+      const result = validatePlay(state, YOU, { type: 'pass', loot: buildLoot() }, dict);
+      if (!result.ok) {
+        previewEl.textContent = friendlyReason(result.reason);
+        previewEl.className = 'bad';
+      } else {
+        previewEl.textContent = '';
+        previewEl.className = '';
+      }
+    } else {
+      previewEl.textContent = '';
+      previewEl.className = '';
+    }
+    playBtn.disabled = true;
+    movePreviewBadgeEl.hidden = true;
+    return;
+  }
+  const move = { type: 'play', tiles: pending.map((t) => ({ row: t.row, col: t.col, letter: t.letter, blank: t.blank })), loot: buildLoot() };
+  const result = validatePlay(state, YOU, move, dict);
+  if (!result.ok) {
+    previewEl.textContent = friendlyReason(result.reason);
+    previewEl.className = 'bad';
+    playBtn.disabled = true;
+    updateMovePreviewBadge(friendlyReason(result.reason), 'bad');
+    return;
+  }
+  const probe = resolveRound(state, { [YOU]: move }, dict);
+  const placed = probe.events.find((ev) => ev.type === 'placed' && ev.playerId === YOU);
+  const words = placed ? placed.words.join(' + ').toUpperCase() : '';
+  const dmgEvents = probe.events.filter((ev) => ev.type === 'damage' && ev.by === YOU);
+  const dmgText = dmgEvents.length
+    ? dmgEvents.map((ev) => `${ev.amount} to ${displayName(ev.playerId)}`).join(', ')
+    : `${result.damage} damage`;
+  previewEl.textContent = `${words} · ${result.score} pts · ${dmgText}`;
+  previewEl.className = 'good';
+  playBtn.disabled = false;
+  updateMovePreviewBadge(`${result.score} pts · ${result.damage} dmg`, 'good');
+}
+
+// ---- hints ----
+function reconstructWord(tiles, dir) {
+  const placed = new Map(tiles.map((t) => [`${t.row},${t.col}`, t]));
+  const dr = dir === 'V' ? 1 : 0, dc = dir === 'H' ? 1 : 0;
+  const at = (r, c) => {
+    if (r < 0 || c < 0 || r >= state.boardSide || c >= state.boardSide) return null;
+    return placed.get(`${r},${c}`) || state.board[r][c];
+  };
+  let r = tiles[0].row, c = tiles[0].col;
+  while (at(r - dr, c - dc)) { r -= dr; c -= dc; }
+  let word = '';
+  for (let rr = r, cc = c; at(rr, cc); rr += dr, cc += dc) word += at(rr, cc).letter.toUpperCase();
+  return word;
+}
+function showHints() {
+  if (!dict) return;
+  const moves = generateMoves(state, YOU, dict)
+    .slice()
+    .sort((a, b) => (b.score + b.damage) - (a.score + a.damage))
+    .slice(0, 3);
+  hintsEl.innerHTML = '';
+  hintsEl.hidden = moves.length === 0;
+  for (const m of moves) {
+    const dir = m.tiles.length > 1 ? (m.tiles.every((t) => t.row === m.tiles[0].row) ? 'H' : 'V') : 'H';
+    const word = reconstructWord(m.tiles, dir);
+    const btn = document.createElement('button');
+    btn.className = 'btn hint-btn';
+    btn.textContent = `${word} · ${m.score} pts, ${m.damage} dmg`;
+    btn.addEventListener('click', () => {
+      pending = m.tiles.map((t) => ({ ...t }));
+      cursor = null;
+      selectedRackIndex = null;
+      hintsEl.hidden = true;
+      renderAll();
+    });
+    hintsEl.appendChild(btn);
+  }
+}
+
+// ---- sidebar / log ----
+function damageStatusText() {
+  const mult = damageMultiplier(state.round);
+  const nextRise = (Math.floor(state.round / 5) + 1) * 5;
+  const nextMult = damageMultiplier(nextRise);
+  return `Damage ×${mult} — rises to ×${nextMult} in ${(nextRise - state.round) * TICK_SECONDS}s.`;
+}
+function renderSidebar() {
+  const t = state.round * TICK_SECONDS;
+  roundInfoEl.innerHTML = `<strong>${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}</strong><br>${damageStatusText()}`;
+  const owned = countOwnedTiles();
+  const sorted = [me(), ...state.players.filter((p) => p.id !== YOU)];
+  playerListEl.innerHTML = '';
+  for (const p of sorted) {
+    const li = document.createElement('li');
+    li.className = 'player-row' + (p.eliminated ? ' eliminated' : '');
+    li.dataset.playerId = p.id;
+    const swatch = document.createElement('span');
+    swatch.className = 'swatch';
+    swatch.style.setProperty('--swatch-color', colorFor(p.id));
+    const name = document.createElement('span');
+    name.className = 'player-name';
+    name.textContent = displayName(p.id);
+    const tiles = document.createElement('span');
+    tiles.textContent = `${owned.get(p.id) || 0} tiles`;
+    const hpRow = document.createElement('div');
+    hpRow.className = 'hp-row';
+    const hpBar = document.createElement('div');
+    hpBar.className = 'hp-bar';
+    const hpFill = document.createElement('div');
+    hpFill.className = 'hp-fill';
+    hpFill.style.width = `${Math.max(0, Math.min(50, p.hp)) / 50 * 100}%`;
+    hpBar.appendChild(hpFill);
+    const hpText = document.createElement('span');
+    hpText.textContent = `${Math.max(0, p.hp)} HP`;
+    hpRow.appendChild(hpBar);
+    hpRow.appendChild(hpText);
+    li.appendChild(swatch);
+    li.appendChild(name);
+    li.appendChild(tiles);
+    li.appendChild(hpRow);
+    playerListEl.appendChild(li);
+  }
+}
+function renderLog() {
+  logEl.innerHTML = '';
+  for (const line of logLines.slice(0, 200)) {
+    const li = document.createElement('li');
+    li.textContent = line.text;
+    if (line.header) li.classList.add('log-round');
+    logEl.appendChild(li);
+  }
+}
+function buildLogLines(events) {
+  const lines = [];
+  let i = 0;
+  while (i < events.length) {
+    const ev = events[i];
+    if (ev.type === 'placed') {
+      lines.push(`${displayName(ev.playerId)} played ${ev.words.join(', ').toUpperCase()} for ${ev.score}.`);
+      i++;
+    } else if (ev.type === 'failed') {
+      lines.push(`${possessive(ev.playerId, true)} move failed: ${friendlyReason(ev.reason)}`);
+      i++;
+    } else if (ev.type === 'captured') {
+      const attacker = ev.playerId;
+      const group = [];
+      while (events[i] && events[i].type === 'captured' && events[i].playerId === attacker) { group.push(events[i]); i++; }
+      const dmgGroup = [];
+      while (events[i] && events[i].type === 'damage' && events[i].by === attacker) { dmgGroup.push(events[i]); i++; }
+      const dmgByVictim = new Map(dmgGroup.map((d) => [d.playerId, d.amount]));
+      for (const c of group) {
+        const n = c.positions.length;
+        if (c.from === null) {
+          lines.push(`${displayName(attacker)} captured ${n} neutral tile${n > 1 ? 's' : ''}.`);
+        } else {
+          const dmg = dmgByVictim.get(c.from);
+          lines.push(dmg
+            ? `${displayName(attacker)} captured ${n} of ${possessive(c.from)} tiles, dealing ${dmg} damage.`
+            : `${displayName(attacker)} captured ${n} of ${possessive(c.from)} tiles.`);
+        }
+      }
+    } else if (ev.type === 'timeout') {
+      lines.push(`${displayName(ev.playerId)} ${ev.playerId === YOU ? "are" : "is"} idle and lost ${ev.amount} HP.`);
+      i++;
+    } else if (ev.type === 'exchange') {
+      lines.push(`${displayName(ev.playerId)} exchanged ${ev.count} tile${ev.count > 1 ? 's' : ''}.`);
+      i++;
+    } else if (ev.type === 'eliminated') {
+      const was = ev.playerId === YOU ? 'were' : 'was';
+      if (ev.killer === YOU) lines.push(`${displayName(ev.playerId)} ${was} eliminated by you — their rack is in your loot pouch.`);
+      else if (ev.killer) lines.push(`${displayName(ev.playerId)} ${was} eliminated by ${displayName(ev.killer)}.`);
+      else lines.push(`${displayName(ev.playerId)} ${was} eliminated.`);
+      i++;
+    } else if (ev.type === 'loot') {
+      if (ev.taken.length || ev.given.length) lines.push(`${displayName(ev.playerId)} swapped loot: took ${ev.taken.length}, gave back ${ev.given.length}.`);
+      else if (ev.flushedToBag.length) lines.push(`${possessive(ev.playerId, true)} unclaimed loot returned to the bag.`);
+      i++;
+    } else if (ev.type === 'winner') {
+      const win = ev.playerId === YOU ? 'win' : 'wins';
+      lines.push(ev.reason === 'stalemate'
+        ? `Stalemate — no plays landed for a minute. ${displayName(ev.playerId)} ${win} by HP!`
+        : `${displayName(ev.playerId)} ${win}!`);
+      i++;
+    } else {
+      i++;
+    }
+  }
+  return lines;
+}
+
+// ---- render orchestration ----
+function renderAll() {
+  syncPending();
+  renderBoard();
+  renderRack();
+  updatePreview();
+  playBtn.disabled = playBtn.disabled || swapMode;
+  recallBtn.disabled = swapMode;
+  shuffleBtn.disabled = swapMode;
+  passBtn.disabled = swapMode;
+  hintBtn.disabled = swapMode;
+  cancelSwapBtn.hidden = !swapMode;
+  swapBtn.textContent = swapMode
+    ? (swapSelected.length > 0 ? `Confirm swap (${swapSelected.length})` : 'Tap tiles to swap')
+    : 'Swap tiles';
+}
+
+// ---- scrolling ----
+function scrollToTerritory() {
+  const you = me();
+  let target = you.spawn;
+  if (you.hasPlayedEver) {
+    let sr = 0, sc = 0, n = 0;
+    for (let r = 0; r < state.boardSide; r++) for (let c = 0; c < state.boardSide; c++) {
+      if (state.board[r][c]?.owner === YOU) { sr += r; sc += c; n++; }
+    }
+    if (n > 0) target = { row: Math.round(sr / n), col: Math.round(sc / n) };
+  }
+  cellEls[target.row][target.col].scrollIntoView({ block: 'center', inline: 'center', behavior: reducedMotion ? 'auto' : 'smooth' });
+}
+
+// ---- real-time actions ----
+// Pending tiles are public: every change to the word being built is pushed to the game/server.
+function syncPending() {
+  const tiles = pending.map((t) => ({ row: t.row, col: t.col, letter: t.letter, blank: t.blank }));
+  const sig = JSON.stringify(tiles);
+  if (sig === lastSynced) return;
+  lastSynced = sig;
+  if (onlineMode) postJSON('place', { tiles });
+  else game.place(YOU, tiles);
+}
+function postJSON(path, body) {
+  return fetch(`/api/lobbies/${lobbyCode}/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+    body: JSON.stringify(body),
+  }).then((r) => r.json());
+}
+async function submitAction(move) {
+  swapMode = false;
+  swapSelected = [];
+  try {
+    let data;
+    if (onlineMode) data = await postJSON('move', { move });
+    else if (move.type === 'play') { syncPending(); data = game.commit(YOU, move.loot); }
+    else data = game.act(YOU, move);
+    if (data.cooldownUntil) cooldownUntil = data.cooldownUntil;
+    if (!data.ok) {
+      previewEl.textContent = data.reason === 'cooldown' ? 'Still cooling down — wait for Ready.' : friendlyReason(data.reason);
+      previewEl.className = 'bad';
+    }
+  } catch (e) {
+    previewEl.textContent = 'Could not reach the server.';
+    previewEl.className = 'bad';
+  }
+  renderAll();
+}
+function buildRoundSummary(events) {
+  const elim = events.find((ev) => ev.type === 'eliminated' && ev.playerId === YOU);
+  if (elim) return elim.killer ? `You were eliminated by ${displayName(elim.killer)}.` : 'You were eliminated.';
+  const killedByYou = events.filter((ev) => ev.type === 'eliminated' && ev.killer === YOU);
+  if (killedByYou.length) return killedByYou.map((ev) => `You eliminated ${displayName(ev.playerId)}!`).join(' ');
+  const dealt = events.filter((ev) => ev.type === 'damage' && ev.by === YOU).reduce((s, ev) => s + ev.amount, 0);
+  const tookEvents = events.filter((ev) => ev.type === 'damage' && ev.playerId === YOU);
+  const took = tookEvents.reduce((s, ev) => s + ev.amount, 0);
+  if (!dealt && !took) return '';
+  const parts = [];
+  if (dealt) parts.push(`you dealt ${dealt}`);
+  if (took) parts.push(`took ${took} (${[...new Set(tookEvents.map((ev) => displayName(ev.by)))].join('/')})`);
+  return parts.join(' · ');
+}
+function showDamageFeedback(events) {
+  for (const ev of events) {
+    if (ev.type !== 'damage') continue;
+    const li = playerListEl.querySelector(`li[data-player-id="${ev.playerId}"]`);
+    if (!li) continue;
+    const hpFill = li.querySelector('.hp-fill');
+    const hpRow = li.querySelector('.hp-row');
+    hpFill.classList.add('dmg-flash');
+    setTimeout(() => hpFill.classList.remove('dmg-flash'), 1000);
+    if (ev.playerId === YOU) {
+      li.classList.add('you-flash');
+      setTimeout(() => li.classList.remove('you-flash'), 1000);
+    }
+    const label = document.createElement('span');
+    label.className = 'dmg-float';
+    label.textContent = `−${ev.amount}`;
+    hpRow.appendChild(label);
+    setTimeout(() => label.remove(), 1150);
+  }
+}
+function applyUpdate(newState, events, cooldown) {
+  if (cooldown) cooldownUntil = cooldown;
+  const placedPos = new Set();
+  const capturedPos = new Set();
+  let mineResolved = false; // my word landed, was blocked, or I was eliminated
+  for (const ev of events) {
+    if (ev.type === 'placed') for (const t of ev.tiles) placedPos.add(`${t.row},${t.col}`);
+    if (ev.type === 'captured') for (const pos of ev.positions) capturedPos.add(`${pos.row},${pos.col}`);
+    if ((ev.type === 'placed' || ev.type === 'failed' || ev.type === 'eliminated') && ev.playerId === YOU) mineResolved = true;
+    if (ev.type === 'eliminated') {
+      eliminationOrder.push(ev.playerId);
+      if (ev.killer === YOU) lootFrom = ev.playerId;
+    }
+  }
+  if (mineResolved) {
+    pending = [];
+    lastSynced = '[]';
+    cursor = null;
+    selectedRackIndex = null;
+    lootTake = [];
+    lootGive = [];
+    const blocked = events.find((ev) => ev.type === 'failed' && ev.playerId === YOU && ev.reason.startsWith('blocked'));
+    if (blocked) { previewEl.textContent = `Blocked! ${friendlyReason(blocked.reason)} — your tiles are back in your rack.`; previewEl.className = 'bad'; }
+  }
+  for (const k of placedPos) roundHighlight.placed.add(k);
+  for (const k of capturedPos) roundHighlight.captured.add(k);
+  const lines = buildLogLines(events).map((text) => ({ text }));
+  logLines = lines.concat(logLines).slice(0, 200);
+  const summary = buildRoundSummary(events);
+  if (summary) { roundSummaryEl.textContent = summary; roundSummaryEl.hidden = false; }
+  state = newState;
+  renderAll();
+  renderSidebar();
+  renderLog();
+  showDamageFeedback(events);
+  if (highlightTimer) clearTimeout(highlightTimer);
+  if (placedPos.size || capturedPos.size) {
+    highlightTimer = setTimeout(() => { roundHighlight = { placed: new Set(), captured: new Set() }; renderBoard(); }, 2500);
+  }
+  if (state.gameOver) showGameOver();
+}
+
+// ---- placement / actions wiring ----
+playBtn.addEventListener('click', () => {
+  const move = { type: 'play', tiles: pending.map((t) => ({ row: t.row, col: t.col, letter: t.letter, blank: t.blank })), loot: buildLoot() };
+  submitAction(move);
+});
+passBtn.addEventListener('click', () => submitAction({ type: 'pass', loot: buildLoot() }));
+recallBtn.addEventListener('click', () => { pending = []; cursor = null; renderAll(); });
+shuffleBtn.addEventListener('click', () => {
+  const rack = me().rack;
+  for (let i = rack.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rack[i], rack[j]] = [rack[j], rack[i]];
+  }
+  renderAll();
+});
+swapBtn.addEventListener('click', () => {
+  if (!swapMode) { swapMode = true; swapSelected = []; renderAll(); return; }
+  if (swapSelected.length > 0) {
+    const rack = displayedRack();
+    const letters = swapSelected.map((idx) => rack[idx]);
+    submitAction({ type: 'exchange', letters, loot: buildLoot() });
+  } else {
+    swapMode = false;
+    renderAll();
+  }
+});
+cancelSwapBtn.addEventListener('click', () => { swapMode = false; swapSelected = []; renderAll(); });
+hintBtn.addEventListener('click', showHints);
+newGameBtn.addEventListener('click', () => {
+  gameOverEl.hidden = true;
+  gameEl.hidden = true;
+  game?.stop();
+  if (onlineMode) {
+    closeEvents();
+    clearOnlineSession();
+    onlineMode = false;
+    YOU = 'you';
+    lobbyCode = null; authToken = null; myPlayerId = null;
+  }
+  setupEl.hidden = false;
+});
+zoomInput.addEventListener('input', () => {
+  boardEl.style.setProperty('--cell', `${zoomInput.value}px`);
+});
+
+// ---- game over ----
+function computePlacement() {
+  const N = state.players.length;
+  if (state.winner === YOU) return 1;
+  const idx = eliminationOrder.indexOf(YOU);
+  if (idx !== -1) return N - idx;
+  // ponytail: rare path (stalemate ends the game with multiple survivors) — rank survivors by
+  // the same tiebreak the engine uses (hp, then tiles, then seat); upgrade only if this proves wrong.
+  const owned = countOwnedTiles();
+  const rest = state.players
+    .filter((p) => !eliminationOrder.includes(p.id) && p.id !== state.winner)
+    .sort((a, b) => b.hp - a.hp || (owned.get(b.id) || 0) - (owned.get(a.id) || 0) || a.seat - b.seat);
+  return 2 + rest.findIndex((p) => p.id === YOU);
+}
+function showGameOver() {
+  gameOverTitleEl.textContent = state.winner === YOU ? 'You win!' : `${displayName(state.winner)} wins!`;
+  gameOverPlacementEl.textContent = state.winner === YOU ? 'You took the board.' : `You placed #${computePlacement()} of ${state.players.length}.`;
+  gameOverEl.hidden = false;
+}
+
+// ---- start ----
+function hashSeed(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (Math.imul(h, 31) + str.charCodeAt(i)) | 0;
+  return h;
+}
+startBtn.addEventListener('click', () => {
+  onlineMode = false;
+  YOU = 'you';
+  const n = Math.max(1, Math.min(99, parseInt(botCountInput.value, 10) || 3));
+  const seedStr = seedInput.value.trim();
+  const seed = seedStr ? (Number.isFinite(Number(seedStr)) && seedStr !== '' ? Number(seedStr) : hashSeed(seedStr)) : Date.now();
+  const players = [YOU, ...Array.from({ length: n }, (_, i) => `bot${i + 1}`)];
+  game?.stop();
+  const bots = Object.fromEntries(players.slice(1).map((id) => [id, botKind(id)]));
+  game = new RealtimeGame({ players, seed, dict, bots, difficulty: botDifficultyInput.value, onUpdate: (events) => applyUpdate(game.state, events, game.cooldownUntil.get(YOU)) });
+  state = game.state;
+  cooldownUntil = 0; lastSynced = '[]';
+  eliminationOrder = [];
+  logLines = [];
+  lootTake = []; lootGive = []; lootFrom = null;
+  pending = []; cursor = null; selectedRackIndex = null;
+  swapMode = false; swapSelected = [];
+  roundHighlight = { placed: new Set(), captured: new Set() };
+  roundSummaryEl.hidden = true; roundSummaryEl.textContent = '';
+  buildSeatColors();
+  buildLocalDisplayNames();
+  buildBoardDom();
+  lobbyEl.hidden = true;
+  setupEl.hidden = true;
+  gameEl.hidden = false;
+  gameOverEl.hidden = true;
+  fitBoard();
+  renderAll();
+  renderSidebar();
+  renderLog();
+  scrollToTerritory();
+  game.start();
+});
+
+// ---- online: lobby + rejoin ----
+function saveOnlineSession() {
+  try { localStorage.setItem('scrabbleRoyaleOnline', JSON.stringify({ code: lobbyCode, token: authToken, playerId: myPlayerId })); } catch (e) {}
+}
+function clearOnlineSession() {
+  try { localStorage.removeItem('scrabbleRoyaleOnline'); } catch (e) {}
+}
+function loadOnlineSession() {
+  try { const raw = localStorage.getItem('scrabbleRoyaleOnline'); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+}
+function openEvents() {
+  closeEvents();
+  eventSource = new EventSource(`/api/lobbies/${lobbyCode}/events?token=${authToken}`);
+  eventSource.addEventListener('lobby', (e) => onLobbyEvent(JSON.parse(e.data)));
+  eventSource.addEventListener('update', (e) => { const d = JSON.parse(e.data); applyUpdate(d.view, d.events, d.cooldownUntil); });
+}
+function closeEvents() {
+  if (eventSource) { eventSource.close(); eventSource = null; }
+}
+function renderLobbyScreen(lobby) {
+  lobbyCodeEl.textContent = lobby.code;
+  isHost = lobby.host === myPlayerId;
+  lobbyPlayerListEl.innerHTML = '';
+  for (const p of lobby.players) {
+    const li = document.createElement('li');
+    li.textContent = p.name + (p.id === myPlayerId ? ' (you)' : '') + (p.id === lobby.host ? ' · host' : '');
+    lobbyPlayerListEl.appendChild(li);
+  }
+  hostControlsEl.hidden = !isHost;
+  waitingForHostEl.hidden = isHost;
+}
+function showLobbyScreen(lobby) {
+  setupEl.hidden = true;
+  gameEl.hidden = true;
+  lobbyEl.hidden = false;
+  renderLobbyScreen(lobby);
+}
+function enterOnlineGame(view, cooldown, lobbyPlayers) {
+  onlineMode = true;
+  YOU = myPlayerId;
+  state = view;
+  cooldownUntil = cooldown || 0;
+  buildOnlineDisplayNames(lobbyPlayers);
+  eliminationOrder = [];
+  logLines = [];
+  lootTake = []; lootGive = []; lootFrom = null;
+  pending = (me().pending || []).map((t) => ({ ...t })); lastSynced = JSON.stringify(pending); cursor = null; selectedRackIndex = null;
+  swapMode = false; swapSelected = [];
+  roundHighlight = { placed: new Set(), captured: new Set() };
+  roundSummaryEl.hidden = true; roundSummaryEl.textContent = '';
+  buildSeatColors();
+  buildBoardDom();
+  lobbyEl.hidden = true;
+  setupEl.hidden = true;
+  gameEl.hidden = false;
+  gameOverEl.hidden = true;
+  fitBoard();
+  renderAll();
+  renderSidebar();
+  renderLog();
+  scrollToTerritory();
+}
+function onLobbyEvent(data) {
+  const lobby = data.lobby;
+  if (lobby.started) {
+    if (onlineMode) { isHost = lobby.host === myPlayerId; return; } // already in game, nothing to do
+    fetch(`/api/lobbies/${lobbyCode}`, { headers: { Authorization: `Bearer ${authToken}` } })
+      .then((r) => r.json())
+      .then((body) => enterOnlineGame(body.view, body.cooldownUntil, lobby.players));
+  } else {
+    showLobbyScreen(lobby);
+  }
+}
+async function enterLobby(promise) {
+  try {
+    const res = await promise;
+    const data = await res.json();
+    if (!res.ok) { onlineErrorEl.textContent = data.error || 'Something went wrong.'; return; }
+    lobbyCode = data.code; authToken = data.token; myPlayerId = data.playerId;
+    onlineErrorEl.textContent = '';
+    saveOnlineSession();
+    openEvents();
+    const view = await fetch(`/api/lobbies/${lobbyCode}`, { headers: { Authorization: `Bearer ${authToken}` } }).then((r) => r.json());
+    showLobbyScreen(view.lobby);
+  } catch (e) {
+    onlineErrorEl.textContent = 'Could not reach the server.';
+  }
+}
+createLobbyBtn.addEventListener('click', () => {
+  const name = onlineNameInput.value.trim();
+  if (!name) { onlineErrorEl.textContent = 'Enter your name.'; return; }
+  enterLobby(fetch('/api/lobbies', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) }));
+});
+joinLobbyBtn.addEventListener('click', () => {
+  const name = onlineNameInput.value.trim();
+  const code = joinCodeInput.value.trim().toUpperCase();
+  if (!name) { onlineErrorEl.textContent = 'Enter your name.'; return; }
+  if (!code) { onlineErrorEl.textContent = 'Enter a lobby code.'; return; }
+  enterLobby(fetch(`/api/lobbies/${code}/join`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) }));
+});
+lobbyStartBtn.addEventListener('click', async () => {
+  const bots = Math.max(0, Math.min(99, parseInt(lobbyBotCountInput.value, 10) || 0));
+  try {
+    const res = await fetch(`/api/lobbies/${lobbyCode}/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ bots, difficulty: lobbyBotDifficultyInput.value }),
+    });
+    const data = await res.json();
+    if (!res.ok) onlineErrorEl.textContent = data.error || 'Could not start the game.';
+  } catch (e) {
+    onlineErrorEl.textContent = 'Could not reach the server.';
+  }
+});
+function selectLobbyCodeText() {
+  const range = document.createRange();
+  range.selectNodeContents(lobbyCodeEl);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+copyCodeBtn.addEventListener('click', () => {
+  try {
+    navigator.clipboard.writeText(lobbyCode).catch(() => selectLobbyCodeText());
+  } catch (e) {
+    selectLobbyCodeText();
+  }
+});
+function tryRejoin() {
+  const saved = loadOnlineSession();
+  if (!saved) return;
+  lobbyCode = saved.code; authToken = saved.token; myPlayerId = saved.playerId;
+  fetch(`/api/lobbies/${lobbyCode}`, { headers: { Authorization: `Bearer ${authToken}` } })
+    .then((r) => { if (!r.ok) throw new Error('rejoin failed'); return r.json(); })
+    .then((body) => {
+      openEvents();
+      if (body.lobby.started) enterOnlineGame(body.view, body.cooldownUntil, body.lobby.players);
+      else showLobbyScreen(body.lobby);
+    })
+    .catch(() => { clearOnlineSession(); lobbyCode = null; authToken = null; myPlayerId = null; });
+}
+fetch('/api/health')
+  .then((r) => (r.ok ? r.json() : Promise.reject()))
+  .then((d) => {
+    if (d && d.ok) {
+      onlineSectionEl.hidden = false;
+      tryRejoin();
+    }
+  })
+  .catch(() => {});
+</script>

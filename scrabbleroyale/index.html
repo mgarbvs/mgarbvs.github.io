@@ -171,7 +171,7 @@ button, input, select {
 /* who is attacking you: hits and opponents building words on your tiles */
 #attackFeed { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; width: max-content; max-width: calc(100% - 16px); }
 .attack-msg { display: flex; align-items: center; gap: 6px; background: var(--panel-bg); border: 2px solid var(--panel-border); border-radius: 999px; padding: 4px 12px; font-weight: 600; font-size: .9rem; box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
-.attack-msg.hit { border-color: var(--storm); color: var(--storm); }
+.attack-msg { border-color: var(--who); color: var(--who); }
 .attack-msg .swatch { flex: none; }
 
 #boardControls { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--text-muted); font-size: .9rem; }
@@ -254,10 +254,8 @@ button, input, select {
 
 /* ---- rack / actions ---- */
 #rackBar { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 10px; padding: 12px; }
-#pouchRow, #giveRow { margin-bottom: 10px; }
-.pouch-label { font-size: .85rem; color: var(--text-muted); margin-bottom: 4px; }
 .tile-row { display: flex; flex-wrap: wrap; gap: 6px; }
-.rack-tile, .pouch-tile {
+.rack-tile {
   min-width: 44px;
   min-height: 44px;
   background: var(--tile-bg);
@@ -273,7 +271,7 @@ button, input, select {
   align-items: center;
   justify-content: center;
 }
-.rack-tile .tv, .pouch-tile .tv { position: absolute; bottom: 2px; right: 4px; font-size: .5rem; font-family: 'IBM Plex Mono', monospace; }
+.rack-tile .tv { position: absolute; bottom: 2px; right: 4px; font-size: .5rem; font-family: 'IBM Plex Mono', monospace; }
 /* a blank is a real tile with nothing printed on it: same face as the others, just no letter or value */
 .rack-tile.selected { outline: 3px solid var(--accent); outline-offset: 1px; }
 #rack { margin-bottom: 10px; }
@@ -329,7 +327,7 @@ button, input, select {
   #boardScroll { height: auto; flex: 1; min-height: 0; touch-action: pan-x pan-y; }
   #rackBar { padding: 8px; flex: none; }
   #rack { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 6px; }
-  .rack-tile, .pouch-tile { min-width: 42px; min-height: 46px; }
+  .rack-tile { min-width: 42px; min-height: 46px; }
   #actions { flex-wrap: nowrap; overflow-x: auto; }
   #actions .btn { padding: 12px 14px; white-space: nowrap; }
   #playBtn { flex: 1; min-width: 90px; }
@@ -367,7 +365,6 @@ button, input, select {
         <li>Capturing a tile in your word deals damage split by how many of an opponent's tiles you captured.</li>
         <li>It's real-time: tiles you lay down show to everyone as dashed <em>pending</em> tiles. Commit your word (Enter) after your cooldown — but if an opponent lands a word through your squares first, yours is blocked.</li>
         <li>Damage escalates every 30 seconds; stay active or you'll slowly lose HP.</li>
-        <li>Eliminate a player and their rack becomes your loot, until your next action.</li>
         <li>If a minute passes with no play landing anywhere, the game ends — highest HP wins.</li>
       </ul>
     </details>
@@ -417,10 +414,6 @@ button, input, select {
     </div>
 
     <div id="rackBar">
-      <div id="pouchRow" hidden>
-        <div class="pouch-label" id="pouchLabel">Loot</div>
-        <div class="tile-row" id="pouchTiles"></div>
-      </div>
       <div id="rack" class="tile-row"></div>
       <div id="actions">
         <button id="playBtn" class="btn primary" disabled>Play</button>
@@ -450,7 +443,6 @@ button, input, select {
           <li>Capturing a tile deals damage split by how many of an opponent's tiles you captured.</li>
           <li>It's real-time: tiles you lay down show to everyone as dashed <em>pending</em> tiles. Commit your word (Enter) after your cooldown — but if an opponent lands a word through your squares first, yours is blocked.</li>
         <li>Damage escalates every 30 seconds; stay active or you'll slowly lose HP.</li>
-          <li>Eliminate a player and their rack becomes your loot, until your next action.</li>
           <li>If a minute passes with no play landing anywhere, the game ends — highest HP wins.</li>
         </ul>
       </details>
@@ -501,9 +493,6 @@ const boardEl = document.getElementById('board');
 const boardScrollEl = document.getElementById('boardScroll');
 const zoomInput = document.getElementById('zoom');
 const rackEl = document.getElementById('rack');
-const pouchRowEl = document.getElementById('pouchRow');
-const pouchLabelEl = document.getElementById('pouchLabel');
-const pouchTilesEl = document.getElementById('pouchTiles');
 const playBtn = document.getElementById('playBtn');
 const recallBtn = document.getElementById('recallBtn');
 const shuffleBtn = document.getElementById('shuffleBtn');
@@ -570,9 +559,6 @@ let cursor = null;          // {row, col, dir}
 let selectedRackIndex = null;
 let swapMode = false;
 let swapSelected = [];
-let lootTake = [];
-let lootGive = [];
-let lootFrom = null;
 let pickerOpen = false;
 let pickerTarget = null;
 let eliminationOrder = [];
@@ -660,20 +646,8 @@ function isOccupied(r, c) {
 function pendingConsumed() {
   return pending.map((t) => (t.blank ? BLANK : t.letter));
 }
-function effectiveRack() {
-  let r = subtractMultiset(me().rack, lootGive);
-  r = r.concat(lootTake);
-  return r;
-}
 function displayedRack() {
-  return subtractMultiset(effectiveRack(), pendingConsumed());
-}
-function giveMode() {
-  return effectiveRack().length > 7;
-}
-function buildLoot() {
-  if (lootTake.length === 0 && lootGive.length === 0) return undefined;
-  return { take: lootTake.slice(), give: lootGive.slice() };
+  return subtractMultiset(me().rack, pendingConsumed());
 }
 function friendlyReason(reason) {
   const wordMatch = /^not a word: (.+)$/.exec(reason);
@@ -690,9 +664,6 @@ function friendlyReason(reason) {
     'no blank tile available': 'You’re out of blank tiles.',
     'duplicate tile position': 'You can’t place two tiles on the same square.',
     'tile out of bounds': 'That’s off the board.',
-    'rack would exceed 7 tiles': 'Your rack would have more than 7 tiles — give one back.',
-    'loot pouch does not contain that tile': 'That tile isn’t in your loot pouch.',
-    'rack does not contain that tile to give': 'You don’t have that tile to give back.',
     'exchange 1-7 tiles': 'Exchange between 1 and 7 tiles.',
     'bag does not hold enough tiles': 'The bag doesn’t hold enough tiles for that.',
     'rack does not contain that tile': 'You don’t have that tile.',
@@ -787,7 +758,7 @@ function renderBoard() {
   for (let r = 0; r < state.boardSide; r++) for (let c = 0; c < state.boardSide; c++) renderCell(r, c);
 }
 
-// ---- rack / pouch ----
+// ---- rack ----
 function makeTileEl(letter, tag) {
   const el = document.createElement(tag === 'button' ? 'button' : 'div');
   el.className = letter === BLANK ? 'rack-tile blank' : 'rack-tile';
@@ -806,33 +777,19 @@ function renderRack() {
   rackEl.innerHTML = '';
   const rack = displayedRack();
   for (const key of keyboardEl.querySelectorAll('.kb-key[data-key]:not([data-key="back"])')) {
+    if (key.dataset.key.length > 1) continue; // enter / dir
     key.classList.toggle('off', !rack.includes(key.dataset.key) && !rack.includes(BLANK));
   }
-  const over = giveMode();
   rack.forEach((letter, idx) => {
     const el = makeTileEl(letter, 'button');
     el.draggable = true;
-    if (!swapMode && !over && selectedRackIndex === idx) el.classList.add('selected');
+    if (!swapMode && selectedRackIndex === idx) el.classList.add('selected');
     if (swapMode && swapSelected.includes(idx)) el.classList.add('selected');
     el.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', String(idx)); });
     el.addEventListener('click', () => onRackTileClick(idx));
     rackEl.appendChild(el);
   });
 
-  pouchRowEl.hidden = state.gameOver || me().lootPouch.length === 0;
-  if (!pouchRowEl.hidden) {
-    pouchLabelEl.textContent = lootFrom ? `Loot from ${displayName(lootFrom)}` : 'Loot';
-    pouchTilesEl.innerHTML = '';
-    const pouch = subtractMultiset(me().lootPouch, lootTake);
-    pouch.forEach((letter) => {
-      const el = makeTileEl(letter, 'button');
-      el.classList.add('pouch-tile');
-      el.addEventListener('click', () => { lootTake.push(letter); renderAll(); });
-      pouchTilesEl.appendChild(el);
-    });
-  } else {
-    lootFrom = null;
-  }
 }
 function onRackTileClick(idx) {
   if (pickerOpen) return;
@@ -841,11 +798,6 @@ function onRackTileClick(idx) {
   if (swapMode) {
     const pos = swapSelected.indexOf(idx);
     if (pos >= 0) swapSelected.splice(pos, 1); else swapSelected.push(idx);
-    renderAll();
-    return;
-  }
-  if (giveMode()) {
-    lootGive.push(letter);
     renderAll();
     return;
   }
@@ -902,7 +854,7 @@ function onCellClick(r, c) {
     placeTileAt(r, c, letter);
     return;
   }
-  if (cursor && cursor.row === r && cursor.col === c) cursor.dir = cursor.dir === 'H' ? 'V' : 'H';
+  if (cursor && cursor.row === r && cursor.col === c) { toggleDirection(); return; }
   else cursor = { row: r, col: c, dir: 'H' };
   renderAll();
 }
@@ -935,6 +887,16 @@ function advanceCursor() {
   while (r >= 0 && c >= 0 && r < state.boardSide && c < state.boardSide && isOccupied(r, c)) { r += dr; c += dc; }
   cursor = (r >= 0 && c >= 0 && r < state.boardSide && c < state.boardSide) ? { row: r, col: c, dir: cursor.dir } : null;
 }
+// Flip across/down. With letters already typed, the word continues from the last one
+// (type B, flip to down, and the next letter goes below B, not beside it).
+function toggleDirection() {
+  if (!cursor) return;
+  const dir = cursor.dir === 'H' ? 'V' : 'H';
+  const last = pending[pending.length - 1];
+  cursor = last ? { row: last.row, col: last.col, dir } : { ...cursor, dir };
+  if (last) advanceCursor();
+  renderAll();
+}
 function backspace() {
   const last = pending.pop();
   if (last) cursor = { row: last.row, col: last.col, dir: cursor ? cursor.dir : 'H' };
@@ -956,6 +918,7 @@ document.addEventListener('keydown', (e) => {
   if (pickerOpen) { if (e.key === 'Escape') cancelPicker(); return; }
   if (swapMode) return;
   if (e.key === 'Enter') { e.preventDefault(); if (!playBtn.disabled) playBtn.click(); return; }
+  if (e.key === ' ') { e.preventDefault(); toggleDirection(); return; }
   if (e.key === 'Escape') { pending = []; renderAll(); return; }
   if (e.key === 'Backspace') { e.preventDefault(); backspace(); return; }
   if (cursor && /^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); typeLetter(e.key.toLowerCase()); }
@@ -965,21 +928,28 @@ document.addEventListener('keydown', (e) => {
   const row = document.createElement('div');
   row.className = 'kb-row';
   const keys = letters.split('').map((ch) => [ch, ch.toUpperCase()]);
-  if (i === 2) keys.push(['back', '⌫']);
+  if (i === 1) keys.push(['enter', '⏎']);
+  if (i === 2) { keys.unshift(['dir', '→']); keys.push(['back', '⌫']); }
   for (const [key, label] of keys) {
     const btn = document.createElement('button');
-    btn.className = 'kb-key' + (key === 'back' ? ' wide' : '');
+    btn.className = 'kb-key' + (key.length > 1 ? ' wide' : '');
     btn.dataset.key = key;
     btn.textContent = label;
-    if (key === 'back') btn.setAttribute('aria-label', 'Delete last letter');
+    const labels = { back: 'Delete last letter', enter: 'Play word', dir: 'Switch typing direction' };
+    if (labels[key]) btn.setAttribute('aria-label', labels[key]);
     row.appendChild(btn);
   }
   keyboardEl.appendChild(row);
 });
+const enterKey = keyboardEl.querySelector('[data-key="enter"]');
+const dirKey = keyboardEl.querySelector('[data-key="dir"]');
 keyboardEl.addEventListener('click', (e) => {
   const key = e.target.closest('.kb-key')?.dataset.key;
   if (!key || pickerOpen || swapMode || state.gameOver) return;
-  if (key === 'back') backspace(); else typeLetter(key);
+  if (key === 'back') backspace();
+  else if (key === 'enter') { if (!playBtn.disabled) playBtn.click(); }
+  else if (key === 'dir') toggleDirection();
+  else typeLetter(key);
 });
 
 // ---- preview ----
@@ -996,24 +966,13 @@ function updateMovePreviewBadge(text, cls) {
 function updatePreview() {
   if (!dict) { previewEl.textContent = 'Loading dictionary…'; previewEl.className = ''; playBtn.disabled = true; movePreviewBadgeEl.hidden = true; return; }
   if (pending.length === 0) {
-    if (lootTake.length || lootGive.length) {
-      const result = validatePlay(state, YOU, { type: 'pass', loot: buildLoot() }, dict);
-      if (!result.ok) {
-        previewEl.textContent = friendlyReason(result.reason);
-        previewEl.className = 'bad';
-      } else {
-        previewEl.textContent = '';
-        previewEl.className = '';
-      }
-    } else {
-      previewEl.textContent = '';
-      previewEl.className = '';
-    }
+    previewEl.textContent = '';
+    previewEl.className = '';
     playBtn.disabled = true;
     movePreviewBadgeEl.hidden = true;
     return;
   }
-  const move = { type: 'play', tiles: pending.map((t) => ({ row: t.row, col: t.col, letter: t.letter, blank: t.blank })), loot: buildLoot() };
+  const move = { type: 'play', tiles: pending.map((t) => ({ row: t.row, col: t.col, letter: t.letter, blank: t.blank })) };
   const result = validatePlay(state, YOU, move, dict);
   if (!result.ok) {
     previewEl.textContent = friendlyReason(result.reason);
@@ -1094,6 +1053,7 @@ function renderAttackFeed() {
   const add = (id, text, cls) => {
     const msg = document.createElement('div');
     msg.className = 'attack-msg' + (cls ? ` ${cls}` : '');
+    msg.style.setProperty('--who', colorFor(id));
     const swatch = document.createElement('span');
     swatch.className = 'swatch';
     swatch.style.setProperty('--swatch-color', colorFor(id));
@@ -1196,13 +1156,9 @@ function buildLogLines(events) {
       i++;
     } else if (ev.type === 'eliminated') {
       const was = ev.playerId === YOU ? 'were' : 'was';
-      if (ev.killer === YOU) lines.push(`${displayName(ev.playerId)} ${was} eliminated by you — their rack is in your loot pouch.`);
+      if (ev.killer === YOU) lines.push(`${displayName(ev.playerId)} ${was} eliminated by you!`);
       else if (ev.killer) lines.push(`${displayName(ev.playerId)} ${was} eliminated by ${displayName(ev.killer)}.`);
       else lines.push(`${displayName(ev.playerId)} ${was} eliminated.`);
-      i++;
-    } else if (ev.type === 'loot') {
-      if (ev.taken.length || ev.given.length) lines.push(`${displayName(ev.playerId)} swapped loot: took ${ev.taken.length}, gave back ${ev.given.length}.`);
-      else if (ev.flushedToBag.length) lines.push(`${possessive(ev.playerId, true)} unclaimed loot returned to the bag.`);
       i++;
     } else if (ev.type === 'winner') {
       const win = ev.playerId === YOU ? 'win' : 'wins';
@@ -1224,6 +1180,9 @@ function renderAll() {
   renderRack();
   updatePreview();
   playBtn.disabled = playBtn.disabled || swapMode;
+  enterKey.classList.toggle('off', playBtn.disabled);
+  dirKey.textContent = cursor?.dir === 'V' ? '↓' : '→';
+  dirKey.classList.toggle('off', !cursor);
   recallBtn.disabled = swapMode;
   shuffleBtn.disabled = swapMode;
   passBtn.disabled = swapMode;
@@ -1271,7 +1230,7 @@ async function submitAction(move) {
   try {
     let data;
     if (onlineMode) data = await postJSON('move', { move });
-    else if (move.type === 'play') { syncPending(); data = game.commit(YOU, move.loot); }
+    else if (move.type === 'play') { syncPending(); data = game.commit(YOU); }
     else data = game.act(YOU, move);
     if (data.cooldownUntil) cooldownUntil = data.cooldownUntil;
     if (!data.ok) {
@@ -1332,7 +1291,6 @@ function applyUpdate(newState, events, cooldown) {
     if ((ev.type === 'placed' || ev.type === 'failed' || ev.type === 'eliminated') && ev.playerId === YOU) mineResolved = true;
     if (ev.type === 'eliminated') {
       eliminationOrder.push(ev.playerId);
-      if (ev.killer === YOU) lootFrom = ev.playerId;
     }
   }
   if (mineResolved) {
@@ -1340,8 +1298,6 @@ function applyUpdate(newState, events, cooldown) {
     lastSynced = '[]';
     cursor = null;
     selectedRackIndex = null;
-    lootTake = [];
-    lootGive = [];
     const blocked = events.find((ev) => ev.type === 'failed' && ev.playerId === YOU && ev.reason.startsWith('blocked'));
     if (blocked) { previewEl.textContent = `Blocked! ${friendlyReason(blocked.reason)} — your tiles are back in your rack.`; previewEl.className = 'bad'; }
   }
@@ -1366,10 +1322,10 @@ function applyUpdate(newState, events, cooldown) {
 
 // ---- placement / actions wiring ----
 playBtn.addEventListener('click', () => {
-  const move = { type: 'play', tiles: pending.map((t) => ({ row: t.row, col: t.col, letter: t.letter, blank: t.blank })), loot: buildLoot() };
+  const move = { type: 'play', tiles: pending.map((t) => ({ row: t.row, col: t.col, letter: t.letter, blank: t.blank })) };
   submitAction(move);
 });
-passBtn.addEventListener('click', () => submitAction({ type: 'pass', loot: buildLoot() }));
+passBtn.addEventListener('click', () => submitAction({ type: 'pass' }));
 recallBtn.addEventListener('click', () => { pending = []; cursor = null; renderAll(); });
 shuffleBtn.addEventListener('click', () => {
   const rack = me().rack;
@@ -1384,7 +1340,7 @@ swapBtn.addEventListener('click', () => {
   if (swapSelected.length > 0) {
     const rack = displayedRack();
     const letters = swapSelected.map((idx) => rack[idx]);
-    submitAction({ type: 'exchange', letters, loot: buildLoot() });
+    submitAction({ type: 'exchange', letters });
   } else {
     swapMode = false;
     renderAll();
@@ -1458,7 +1414,6 @@ startBtn.addEventListener('click', () => {
   cooldownUntil = 0; lastSynced = '[]';
   eliminationOrder = [];
   logLines = [];
-  lootTake = []; lootGive = []; lootFrom = null;
   pending = []; cursor = { row: me().spawn.row, col: me().spawn.col, dir: 'H' }; selectedRackIndex = null;
   swapMode = false; swapSelected = []; hits = []; zoomed = false; zoomBtn.setAttribute('aria-pressed', 'false');
   roundHighlight = { placed: new Set(), captured: new Set() };
@@ -1523,7 +1478,6 @@ function enterOnlineGame(view, cooldown, lobbyPlayers) {
   buildOnlineDisplayNames(lobbyPlayers);
   eliminationOrder = [];
   logLines = [];
-  lootTake = []; lootGive = []; lootFrom = null;
   pending = (me().pending || []).map((t) => ({ ...t })); lastSynced = JSON.stringify(pending);
   cursor = me().hasPlayedEver ? null : { row: me().spawn.row, col: me().spawn.col, dir: 'H' }; selectedRackIndex = null;
   swapMode = false; swapSelected = []; hits = []; zoomed = false; zoomBtn.setAttribute('aria-pressed', 'false');

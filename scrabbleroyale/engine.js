@@ -1,12 +1,11 @@
 // Scrabble Royale engine: pure, deterministic, no I/O. See RULES.md.
 
                                                                                  
-                                                      
 
                   
-                                                
-                                                        
-                                  
+                                   
+                                           
+                     
 
                                                                             
 
@@ -16,7 +15,6 @@
                  
              
                          
-                      
                       
                                       
                                                                                 
@@ -52,7 +50,6 @@
                                       
                                                          
                                                                                  
-                                                                                                
                                                                                              
 
                                                                                                            
@@ -163,7 +160,6 @@ export function createGame(config            )            {
       hp: 50,
       hasPlayedEver: false,
       eliminated: false,
-      lootPouch: [],
       spawn: spawns[i],
     })),
     board,
@@ -339,29 +335,6 @@ class InvalidWord extends Error {
 
 // ---- validation ----
 
-function effectiveRackAndPouch(
-  player             ,
-  loot                  ,
-)                                                                                {
-  if (!loot) return { ok: true, rack: player.rack.slice(), pouch: player.lootPouch.slice() };
-  const rack = player.rack.slice();
-  const pouch = player.lootPouch.slice();
-  for (const letter of loot.take) {
-    const idx = pouch.indexOf(letter);
-    if (idx < 0) return { ok: false, reason: 'loot pouch does not contain that tile' };
-    pouch.splice(idx, 1);
-    rack.push(letter);
-  }
-  for (const letter of loot.give) {
-    const idx = rack.indexOf(letter);
-    if (idx < 0) return { ok: false, reason: 'rack does not contain that tile to give' };
-    rack.splice(idx, 1);
-    pouch.push(letter);
-  }
-  if (rack.length > 7) return { ok: false, reason: 'rack would exceed 7 tiles' };
-  return { ok: true, rack, pouch };
-}
-
 // Pre-existing (not-newly-placed) cells in the formed words that aren't already owned
 // by playerId, grouped by current owner (null = neutral). Shared by validatePlay's
 // damage estimate and resolveRound's actual capture + damage split.
@@ -424,9 +397,7 @@ export function validatePlay(state           , playerId        , move      , dic
   if (!player) return { ok: false, reason: 'unknown player' };
   if (player.eliminated) return { ok: false, reason: 'player is eliminated' };
 
-  const eff = effectiveRackAndPouch(player, move.loot);
-  if (!eff.ok) return { ok: false, reason: eff.reason };
-  const rack = eff.rack;
+  const rack = player.rack.slice();
 
   if (move.type === 'pass') return { ok: true };
 
@@ -512,26 +483,6 @@ export function validatePlay(state           , playerId        , move      , dic
 
 // ---- shared mutators (used by both the round model and the real-time model) ----
 
-// Applies a loot swap (if any) and flushes whatever is left in the pouch back to the bag.
-function applyLoot(state           , p             , loot                  , events             ) {
-  if (p.lootPouch.length === 0) return;
-  let taken           = [];
-  let given           = [];
-  if (loot) {
-    const eff = effectiveRackAndPouch(p, loot);
-    if (eff.ok) {
-      p.rack = eff.rack;
-      taken = loot.take.slice();
-      given = loot.give.slice();
-      p.lootPouch = eff.pouch;
-    }
-  }
-  const flushed = p.lootPouch.slice();
-  state.bag.push(...flushed);
-  p.lootPouch = [];
-  events.push({ type: 'loot', playerId: p.id, taken, given, flushedToBag: flushed });
-}
-
 // Validates and lands one play on the live board: captures, damage, draw. Returns true if it landed.
 // Any other player's pending tiles on the squares it takes are discarded (they were blocked).
 function landPlay(
@@ -604,7 +555,7 @@ function doExchange(state           , p             , move                      
   events.push({ type: 'exchange', playerId: p.id, count: move.letters.length });
 }
 
-// Eliminations (HP <= 0) with loot, then winner conditions. `staleLimit` = rounds/ticks without a landing.
+// Eliminations (HP <= 0), then winner conditions. `staleLimit` = rounds/ticks without a landing.
 function settle(state           , events             , staleLimit        ) {
   const active = () => state.players.filter((p) => !p.eliminated);
   const ownedCount = new Map                ();
@@ -640,13 +591,7 @@ function settle(state           , events             , staleLimit        ) {
     p.pending = [];
     events.push({ type: 'eliminated', playerId: p.id, reason: 'hp', killer });
 
-    const rack = p.rack.slice();
-    if (killer) {
-      state.players.find((pl) => pl.id === killer) .lootPouch.push(...rack);
-      events.push({ type: 'loot', playerId: killer, taken: [], given: [], flushedToBag: [] });
-    } else if (rack.length > 0) {
-      state.bag.push(...rack);
-    }
+    state.bag.push(...p.rack);
     p.rack = [];
 
     for (let r = 0; r < state.boardSide; r++) {
@@ -690,13 +635,7 @@ export function resolveRound(
 
   const active = () => state.players.filter((p) => !p.eliminated);
 
-  // 1. Resolve any pending loot pouches (from a kill last round) before anything else,
-  // so a swapped-in tile can be played the same round.
-  for (const p of active()) applyLoot(state, p, moves[p.id]?.loot, events);
-  // Loot is fully applied above; strip it so re-validation below doesn't apply it twice.
-  moves = Object.fromEntries(Object.entries(moves).map(([id, m]) => [id, { ...m, loot: undefined }]));
-
-  // 2. Gather play candidates, scored+validated against the start-of-round board.
+  // 1. Gather play candidates, scored+validated against the start-of-round board.
   const candidates                  = [];
   for (const p of active().sort((a, b) => a.seat - b.seat)) {
     const move = moves[p.id] ?? { type: 'pass' };
@@ -710,27 +649,27 @@ export function resolveRound(
   }
   candidates.sort((a, b) => b.score - a.score || a.tiebreak - b.tiebreak);
 
-  // 3. Land plays in that order, re-validating + re-scoring against the live board.
+  // 2. Land plays in that order, re-validating + re-scoring against the live board.
   let anyLanded = false;
   for (const cand of candidates) {
     if (landPlay(state, cand.playerId, cand.move, dict, events)) anyLanded = true;
   }
 
-  // 4. Exchanges, after all plays, in seat order.
+  // 3. Exchanges, after all plays, in seat order.
   for (const p of active().sort((a, b) => a.seat - b.seat)) {
     const move = moves[p.id] ?? { type: 'pass' };
     if (move.type === 'exchange') doExchange(state, p, move, dict, events);
     else if (move.type === 'pass') events.push({ type: 'pass', playerId: p.id });
   }
 
-  // 4b. Timeout penalty for players who didn't move before the clock ran out.
+  // 3b. Timeout penalty for players who didn't move before the clock ran out.
   for (const p of active()) {
     if (!timedOut.includes(p.id)) continue;
     p.hp -= TIMEOUT_PENALTY;
     events.push({ type: 'timeout', playerId: p.id, amount: TIMEOUT_PENALTY });
   }
 
-  // 5. Advance the round and track stalemate: resets whenever a play lands, otherwise
+  // 4. Advance the round and track stalemate: resets whenever a play lands, otherwise
   // counts up; the game ends in a stalemate once it reaches 3.
   state.round += 1;
   state.staleRounds = anyLanded ? 0 : state.staleRounds + 1;
@@ -788,12 +727,11 @@ export function setPending(
   return { state, events };
 }
 
-// Commits the player's pending tiles as a play (loot applied first). Pending is cleared either way.
+// Commits the player's pending tiles as a play. Pending is cleared either way.
 export function commitPending(
   inState           ,
   playerId        ,
   dict             ,
-  loot       ,
 )                                                                                              {
   const state = structuredClone(inState);
   const events              = [];
@@ -801,7 +739,6 @@ export function commitPending(
   if (!player || player.eliminated || state.gameOver) return { state: inState, events, landed: false, reason: 'cannot commit' };
   const tiles = player.pending ?? [];
   if (tiles.length === 0) return { state: inState, events, landed: false, reason: 'nothing placed' };
-  applyLoot(state, player, loot, events);
   player.pending = [];
   const landed = landPlay(state, playerId, { type: 'play', tiles }, dict, events);
   if (landed) state.staleRounds = 0;
@@ -810,7 +747,7 @@ export function commitPending(
   return { state, events, landed, score: events.find((e) => e.type === 'placed')?.score, reason: failed?.type === 'failed' ? failed.reason : undefined };
 }
 
-// Exchange / pass as a real-time action (loot applied first). Counts as activity.
+// Exchange / pass as a real-time action. Counts as activity.
 export function actNow(
   inState           ,
   playerId        ,
@@ -821,7 +758,6 @@ export function actNow(
   const events              = [];
   const player = state.players.find((p) => p.id === playerId);
   if (!player || player.eliminated || state.gameOver) return { state: inState, events };
-  applyLoot(state, player, move.loot, events);
   if (move.type === 'exchange') doExchange(state, player, move, dict, events);
   else { player.lastActRound = state.round; events.push({ type: 'pass', playerId }); }
   return { state, events };

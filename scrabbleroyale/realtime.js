@@ -1,7 +1,7 @@
 // Real-time game loop shared by the server and the offline browser game: wraps the pure
 // engine with a tick clock, per-player commit cooldowns, and bot players. See RULES.md.
 import { createGame, setPending, commitPending, actNow, tick, cooldownSeconds, TICK_SECONDS } from './engine.js';
-                                                                          
+                                                                    
 import { aggressiveBot, greedyBot, randomBot } from './movegen.js';
 
                                               
@@ -68,10 +68,10 @@ export class RealtimeGame {
     return { ok: true, cooldownUntil: this.cooldownUntil.get(id) ?? 0 };
   }
 
-  commit(id        , loot       )            {
+  commit(id        )            {
     const wait = (this.cooldownUntil.get(id) ?? 0) - Date.now();
     if (wait > 0) return { ok: false, reason: 'cooldown', cooldownUntil: this.cooldownUntil.get(id) };
-    const r = commitPending(this.state, id, this.dict, loot);
+    const r = commitPending(this.state, id, this.dict);
     this.apply(r);
     if (!r.landed) return { ok: false, reason: r.reason ?? 'play failed' };
     return { ok: true, score: r.score, cooldownUntil: this.startCooldown(id) };
@@ -117,7 +117,7 @@ export class RealtimeGame {
       const lay = (n        ) => {
         if (!this.place(id, move.tiles.slice(0, n)).ok) return next();
         if (n < move.tiles.length) return this.later(600 * pace, () => lay(n + 1));
-        this.later(1500 * pace, () => { this.commit(id, move.loot); next(); });
+        this.later(1500 * pace, () => { this.commit(id); next(); });
       };
       lay(1);
     });

@@ -321,7 +321,7 @@ button, input, select {
   #game:not([hidden]) { display: flex; flex-direction: column; height: calc(100dvh - 16px); gap: 6px; }
   #hud { gap: 6px; }
   #hudText { font-size: .8rem; }
-  #sideToggle { display: inline-block; padding: 6px 10px; min-width: 40px; }
+  #sideToggle { display: inline-block; min-width: 44px; }
   #boardWrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   #attackFeed { top: 8px; }
   #boardControls { display: none; }
@@ -330,18 +330,33 @@ button, input, select {
   #rack { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 6px; }
   .rack-tile { min-width: 42px; min-height: 46px; }
   #actions { flex-wrap: nowrap; overflow-x: auto; }
-  #actions .btn { padding: 12px 14px; white-space: nowrap; }
-  #playBtn { flex: 1; min-width: 90px; }
+  #actions .btn { padding: 12px 10px; white-space: nowrap; }
+  #playBtn { flex: 1; min-width: 70px; }
   /* on-screen keyboard, NYT-crossword style: tap a square, then type; letters you don't hold are dimmed */
   #keyboard { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
   .kb-row { display: flex; gap: 4px; justify-content: center; }
   .kb-key { flex: 1; max-width: 40px; height: 42px; padding: 0; border-radius: 5px; border: 1px solid var(--panel-border); background: var(--bg); color: var(--text); font-weight: 600; font-size: 1.05rem; touch-action: manipulation; cursor: pointer; }
   .kb-key.wide { flex: 1.6; max-width: 64px; }
+  .kb-key { position: relative; }
   .kb-key.off { opacity: .35; }
-  #preview { margin-top: 6px; font-size: .88rem; }
+  /* letters you hold look like tiles; with a blank, the rest are dashed ("uses your blank") */
+  .kb-key.held { background: var(--tile-bg); color: var(--tile-ink); border-color: rgba(0,0,0,.2); font-family: 'Zilla Slab', Georgia, serif; font-weight: 700; }
+  .kb-key.via-blank { border-style: dashed; }
+  .kb-key .tv { position: absolute; bottom: 1px; right: 3px; font-size: .5rem; font-family: 'IBM Plex Mono', monospace; font-weight: 400; }
+  .kb-key:not(.held) .tv { display: none; }
+  .kb-key.held[data-count]::after { content: '×' attr(data-count); position: absolute; top: 1px; right: 3px; font-size: .55rem; font-family: 'IBM Plex Mono', monospace; font-weight: 400; }
+  /* the keyboard is the rack on phones; tiles show only while choosing tiles to swap */
+  #rackBar:not(.swapping) #rack, #rackBar.swapping #keyboard { display: none; }
+  #preview { margin-top: 4px; min-height: 1.2em; font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #roundSummary { display: none; }
   #hintBtn, #shuffleBtn { display: none; }
   #sidebar { position: fixed; left: 0; right: 0; bottom: 0; max-height: 70dvh; overflow: auto; z-index: 40; border-radius: 12px 12px 0 0; transform: translateY(105%); transition: transform .2s; }
   body.show-side #sidebar { transform: none; }
+}
+@media (max-width: 360px) {
+  #actions { gap: 4px; }
+  #actions .btn { padding: 10px 6px; font-size: .9rem; }
+  #playBtn { min-width: 56px; }
 }
 </style>
 
@@ -402,7 +417,6 @@ button, input, select {
     <div id="hud">
       <div id="myHp"><div id="myHpFill"></div><span id="myHpText"></span></div>
       <span id="hudText"></span>
-      <button id="sideToggle" class="btn" aria-label="Players and log">☰</button>
     </div>
     <div id="boardWrap">
       <div id="attackFeed" aria-live="polite"></div>
@@ -419,10 +433,11 @@ button, input, select {
         <button id="playBtn" class="btn primary" disabled>Play</button>
         <button id="recallBtn" class="btn">Recall</button>
         <button id="shuffleBtn" class="btn">Shuffle</button>
-        <button id="swapBtn" class="btn">Swap tiles</button>
+        <button id="swapBtn" class="btn">Swap</button>
         <button id="cancelSwapBtn" class="btn" hidden>Cancel</button>
         <button id="passBtn" class="btn">Pass</button>
         <button id="hintBtn" class="btn">Hint</button>
+        <button id="sideToggle" class="btn" aria-label="Players and log">☰</button>
       </div>
       <div id="keyboard"></div>
       <div id="preview" aria-live="polite"></div>
@@ -791,9 +806,15 @@ function makeTileEl(letter, tag) {
 function renderRack() {
   rackEl.innerHTML = '';
   const rack = displayedRack();
-  for (const key of keyboardEl.querySelectorAll('.kb-key[data-key]:not([data-key="back"])')) {
-    if (key.dataset.key.length > 1) continue; // enter / dir
-    key.classList.toggle('off', !rack.includes(key.dataset.key) && !rack.includes(BLANK));
+  const counts = {};
+  for (const l of rack) counts[l] = (counts[l] || 0) + 1;
+  for (const key of keyboardEl.querySelectorAll('.kb-key')) {
+    if (key.dataset.key.length > 1) continue; // enter / dir / back
+    const n = counts[key.dataset.key] || 0;
+    key.classList.toggle('held', n > 0);
+    key.classList.toggle('via-blank', !n && !!counts[BLANK]);
+    key.classList.toggle('off', !n && !counts[BLANK]);
+    if (n > 1) key.dataset.count = String(n); else delete key.dataset.count;
   }
   rack.forEach((letter, idx) => {
     const el = makeTileEl(letter, 'button');
@@ -974,6 +995,12 @@ document.addEventListener('keydown', (e) => {
     btn.className = 'kb-key' + (key.length > 1 ? ' wide' : '');
     btn.dataset.key = key;
     btn.textContent = label;
+    if (key.length === 1) {
+      const tv = document.createElement('span');
+      tv.className = 'tv';
+      tv.textContent = String(LETTER_VALUES[key]);
+      btn.appendChild(tv);
+    }
     const labels = { back: 'Delete last letter', enter: 'Play word', dir: 'Switch typing direction' };
     if (labels[key]) btn.setAttribute('aria-label', labels[key]);
     row.appendChild(btn);
@@ -1227,9 +1254,10 @@ function renderAll() {
   passBtn.disabled = swapMode;
   hintBtn.disabled = swapMode;
   cancelSwapBtn.hidden = !swapMode;
+  document.getElementById('rackBar').classList.toggle('swapping', swapMode);
   swapBtn.textContent = swapMode
     ? (swapSelected.length > 0 ? `Confirm swap (${swapSelected.length})` : 'Tap tiles to swap')
-    : 'Swap tiles';
+    : 'Swap';
 }
 
 // ---- scrolling ----

@@ -6,7 +6,7 @@ import { aggressiveBot, greedyBot, randomBot } from './movegen.js';
 
                                               
                                                     
-const DIFFICULTY_PACE                             = { easy: 1.8, medium: 1, hard: 0.6 };
+const DIFFICULTY_PACE                             = { easy: 2.5, medium: 1.6, hard: 1 };
 
 const BOT_NAMES = [
   'Edmund', 'Sigmund', 'Agatha', 'Beatrix', 'Cornelius', 'Dorothea', 'Ignatius', 'Hildegard',
@@ -79,7 +79,7 @@ export class RealtimeGame {
 
   start() {
     this.ticker = setInterval(() => this.apply(tick(this.state)), (TICK_SECONDS * 1000) / this.speed);
-    for (const id of Object.keys(this.bots)) this.scheduleBot(id, 2000);
+    for (const id of Object.keys(this.bots)) this.scheduleBot(id, 8000);
   }
 
   stop() {
@@ -141,7 +141,7 @@ export class RealtimeGame {
       const move = style === 'easy' ? randomBot(this.state, id, this.botDict, Math.random)
         : (style === 'aggressive' ? aggressiveBot : greedyBot)(this.state, id, this.botDict);
       const pace = this.pace[id] ?? 1;
-      const next = () => this.scheduleBot(id, (1500 + Math.random() * 2500) * pace);
+      const next = () => this.scheduleBot(id, (3000 + Math.random() * 3000) * pace);
       if (move.type !== 'play') {
         const wait = (this.cooldownUntil.get(id) ?? 0) - Date.now();
         if (move.type === 'exchange' && wait <= 0) this.act(id, move);
@@ -150,7 +150,7 @@ export class RealtimeGame {
       // Letter by letter (~0.6s each), then a beat for opponents to block it before committing.
       const lay = (n        ) => {
         if (!this.place(id, move.tiles.slice(0, n)).ok) return next();
-        if (n < move.tiles.length) return this.later(600 * pace, () => lay(n + 1));
+        if (n < move.tiles.length) return this.later(900 * pace, () => lay(n + 1));
         this.later(1500 * pace, () => { this.commit(id); next(); });
       };
       lay(1);

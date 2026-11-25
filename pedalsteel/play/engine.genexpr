@@ -1,0 +1,945 @@
+Param vib(0.25);
+Param sustain(12000);
+Param tone(60);
+Param swell(0);
+Param blockall(0);
+History lastba(0);
+History vibph(0);
+History vibenv(0);
+Param p0(66);
+Param g0(0);
+Param k0(0);
+Param v0(0.8);
+Param w0(0);
+Param d0(1);
+Delay dl0(8192);
+History cur0(66);
+History last0(66);
+History slope0(0);
+History left0(0);
+History lastk0(0);
+History wait0(-1);
+History burst0(0);
+History pol0(1);
+History vel0(0);
+History env0(1);
+History lp0(0);
+History exlp0(0);
+History lastd0(1);
+History blk0(0);
+History lasts0(0);
+History symlp0(0);
+History symhp0(0);
+Param x0(1);
+Param t0(0.5);
+History xs0(1);
+History ts0(0.5);
+History tl0(0);
+Param p1(63);
+Param g1(0);
+Param k1(0);
+Param v1(0.8);
+Param w1(0);
+Param d1(1);
+Delay dl1(8192);
+History cur1(63);
+History last1(63);
+History slope1(0);
+History left1(0);
+History lastk1(0);
+History wait1(-1);
+History burst1(0);
+History pol1(1);
+History vel1(0);
+History env1(1);
+History lp1(0);
+History exlp1(0);
+History lastd1(1);
+History blk1(0);
+History lasts1(0);
+History symlp1(0);
+History symhp1(0);
+Param x1(1);
+Param t1(0.5);
+History xs1(1);
+History ts1(0.5);
+History tl1(0);
+Param p2(68);
+Param g2(0);
+Param k2(0);
+Param v2(0.8);
+Param w2(0);
+Param d2(1);
+Delay dl2(8192);
+History cur2(68);
+History last2(68);
+History slope2(0);
+History left2(0);
+History lastk2(0);
+History wait2(-1);
+History burst2(0);
+History pol2(1);
+History vel2(0);
+History env2(1);
+History lp2(0);
+History exlp2(0);
+History lastd2(1);
+History blk2(0);
+History lasts2(0);
+History symlp2(0);
+History symhp2(0);
+Param x2(1);
+Param t2(0.5);
+History xs2(1);
+History ts2(0.5);
+History tl2(0);
+Param p3(64);
+Param g3(0);
+Param k3(0);
+Param v3(0.8);
+Param w3(0);
+Param d3(1);
+Delay dl3(8192);
+History cur3(64);
+History last3(64);
+History slope3(0);
+History left3(0);
+History lastk3(0);
+History wait3(-1);
+History burst3(0);
+History pol3(1);
+History vel3(0);
+History env3(1);
+History lp3(0);
+History exlp3(0);
+History lastd3(1);
+History blk3(0);
+History lasts3(0);
+History symlp3(0);
+History symhp3(0);
+Param x3(1);
+Param t3(0.5);
+History xs3(1);
+History ts3(0.5);
+History tl3(0);
+Param p4(59);
+Param g4(0);
+Param k4(0);
+Param v4(0.8);
+Param w4(0);
+Param d4(1);
+Delay dl4(8192);
+History cur4(59);
+History last4(59);
+History slope4(0);
+History left4(0);
+History lastk4(0);
+History wait4(-1);
+History burst4(0);
+History pol4(1);
+History vel4(0);
+History env4(1);
+History lp4(0);
+History exlp4(0);
+History lastd4(1);
+History blk4(0);
+History lasts4(0);
+History symlp4(0);
+History symhp4(0);
+Param x4(1);
+Param t4(0.5);
+History xs4(1);
+History ts4(0.5);
+History tl4(0);
+Param p5(56);
+Param g5(0);
+Param k5(0);
+Param v5(0.8);
+Param w5(0);
+Param d5(1);
+Delay dl5(8192);
+History cur5(56);
+History last5(56);
+History slope5(0);
+History left5(0);
+History lastk5(0);
+History wait5(-1);
+History burst5(0);
+History pol5(1);
+History vel5(0);
+History env5(1);
+History lp5(0);
+History exlp5(0);
+History lastd5(1);
+History blk5(0);
+History lasts5(0);
+History symlp5(0);
+History symhp5(0);
+Param x5(1);
+Param t5(0.5);
+History xs5(1);
+History ts5(0.5);
+History tl5(0);
+Param p6(54);
+Param g6(0);
+Param k6(0);
+Param v6(0.8);
+Param w6(0);
+Param d6(1);
+Delay dl6(8192);
+History cur6(54);
+History last6(54);
+History slope6(0);
+History left6(0);
+History lastk6(0);
+History wait6(-1);
+History burst6(0);
+History pol6(1);
+History vel6(0);
+History env6(1);
+History lp6(0);
+History exlp6(0);
+History lastd6(1);
+History blk6(0);
+History lasts6(0);
+History symlp6(0);
+History symhp6(0);
+Param x6(1);
+Param t6(0.5);
+History xs6(1);
+History ts6(0.5);
+History tl6(0);
+Param p7(52);
+Param g7(0);
+Param k7(0);
+Param v7(0.8);
+Param w7(0);
+Param d7(1);
+Delay dl7(8192);
+History cur7(52);
+History last7(52);
+History slope7(0);
+History left7(0);
+History lastk7(0);
+History wait7(-1);
+History burst7(0);
+History pol7(1);
+History vel7(0);
+History env7(1);
+History lp7(0);
+History exlp7(0);
+History lastd7(1);
+History blk7(0);
+History lasts7(0);
+History symlp7(0);
+History symhp7(0);
+Param x7(1);
+Param t7(0.5);
+History xs7(1);
+History ts7(0.5);
+History tl7(0);
+Param p8(50);
+Param g8(0);
+Param k8(0);
+Param v8(0.8);
+Param w8(0);
+Param d8(1);
+Delay dl8(8192);
+History cur8(50);
+History last8(50);
+History slope8(0);
+History left8(0);
+History lastk8(0);
+History wait8(-1);
+History burst8(0);
+History pol8(1);
+History vel8(0);
+History env8(1);
+History lp8(0);
+History exlp8(0);
+History lastd8(1);
+History blk8(0);
+History lasts8(0);
+History symlp8(0);
+History symhp8(0);
+Param x8(1);
+Param t8(0.5);
+History xs8(1);
+History ts8(0.5);
+History tl8(0);
+Param p9(47);
+Param g9(0);
+Param k9(0);
+Param v9(0.8);
+Param w9(0);
+Param d9(1);
+Delay dl9(8192);
+History cur9(47);
+History last9(47);
+History slope9(0);
+History left9(0);
+History lastk9(0);
+History wait9(-1);
+History burst9(0);
+History pol9(1);
+History vel9(0);
+History env9(1);
+History lp9(0);
+History exlp9(0);
+History lastd9(1);
+History blk9(0);
+History lasts9(0);
+History symlp9(0);
+History symhp9(0);
+Param x9(1);
+Param t9(0.5);
+History xs9(1);
+History ts9(0.5);
+History tl9(0);
+History symsum(0);
+History puxl1(0);
+History puxl2(0);
+History puyl1(0);
+History puyl2(0);
+History puxr1(0);
+History puxr2(0);
+History puyr1(0);
+History puyr2(0);
+Param reverb(30);
+Param volume(0);
+Param volpedal(1);
+History volsm(1);
+History revsm(0.3);
+History dcxl(0);
+History dcyl(0);
+History dcxr(0);
+History dcyr(0);
+Delay rvdl(8192);
+History rvlfol(0);
+History rvlpl(0);
+History rvhpl(0);
+Delay rval0(8192);
+Delay rval1(8192);
+Delay rval2(8192);
+Delay rval3(8192);
+Delay rval4(8192);
+Delay rval5(8192);
+Delay rvdr(8192);
+History rvlfor(0);
+History rvlpr(0);
+History rvhpr(0);
+Delay rvar0(8192);
+Delay rvar1(8192);
+Delay rvar2(8192);
+Delay rvar3(8192);
+Delay rvar4(8192);
+Delay rvar5(8192);
+sr = samplerate;
+n = 0; f = 0; per = 0; omega = 0; bb = 0; look = 0; x = 0; y = 0; yd = 0; s = 0; sy = 0; plucked = 0; L = 0; R = 0; pkr = 0; pkn = 0; pkx = 0; symacc = 0; othersum = 0;
+blkall = blockall != lastba; lastba = blockall;
+vibph = wrap(vibph + 5.5 / sr, 0, 1);
+vibenv = min(1, vibenv + 1 / (0.7 * sr));
+vibamt = sin(vibph * twopi) * vib * 0.3 * vibenv;
+b = 1 - (0.3 + 0.0065 * tone);
+bd = 1 - (0.3 + 0.0065 * tone) * 0.6;
+pickc = 0.15 + 0.008 * tone;
+swelling = swell > 1;
+swinc = 1 / max(1, swell * sr / 1000);
+
+// string 0
+if (p0 != last0) { n = max(1, g0 * sr / 1000); slope0 = (p0 - cur0) / n; left0 = n; last0 = p0; }
+if (left0 > 0) { cur0 = cur0 + slope0; left0 = left0 - 1; if (left0 <= 0) { cur0 = last0; } }
+// sympathetic resonance: the AVERAGE of every OTHER string's previous sample (never itself, so a
+// lone ringing string can't detune/feed itself), lowpassed then DC-blocked. DC-blocking is essential:
+// without it a steady/near-DC component would recirculate through a near-lossless string forever
+// and rail the delay line (verified by ear/measurement, not just caution).
+othersum = (symsum - lasts0) * 0.1111;
+symlp0 = symlp0 + 0.3 * (othersum - symlp0);
+symhp0 = symhp0 + 0.01 * (symlp0 - symhp0);
+coup0 = symlp0 - symhp0;
+f = mtof(cur0 + vibamt + 0.015);
+per = sr / f;
+omega = twopi * f / sr;
+// a damp (d 0→1) blocks the string for 0.4 s, then it's open again to ring along sympathetically
+if (d0 != lastd0) { lastd0 = d0; blk0 = d0 > 0 ? 0.4 * sr : 0; }
+if (blkall && d0 > 0) { blk0 = 0.4 * sr; }
+blk0 = max(0, blk0 - 1);
+bb = blk0 > 0 ? bd : b;
+look = clamp(per - atan2(bb * sin(omega), 1 - bb * cos(omega)) / omega, 2, 8190);
+if (k0 != lastk0) { lastk0 = k0; wait0 = w0 * sr / 1000; }
+if (wait0 >= 0) {
+    wait0 = wait0 - 1;
+    if (wait0 < 0) { burst0 = per; vel0 = v0; pol0 = noise() < 0 ? -1 : 1; env0 = swelling ? 0 : 1; plucked = 1; }
+}
+x = 0;
+pkr = clamp(0.000540549 * sr / per, 0.1, 0.5);    // the pick point as a fraction of the sounding string (never past the middle)
+pkn = pkr * per;                            // samples of the period spent on the "high" level
+pkx = 0;
+if (burst0 > 0) {
+    pkx = ((pol0 * (burst0 <= pkn ? 1 : -pkn / (per - pkn))) * (1 - pkr) / sin(twopi * 0.5 * pkr) + 0.1 * noise()) * vel0 * 0.32;
+    burst0 = burst0 - 1;
+}
+exlp0 = exlp0 + pickc * vel0 * (pkx - exlp0);
+x = exlp0;
+y = dl0.read(look, interp="cubic");
+yd = dl0.read(look + 0.000193053 * sr, interp="cubic");
+lp0 = (1 - bb) * y + bb * lp0;
+dl0.write(clamp((lp0 + (blk0 > 0 ? 0 : coup0 * 0.008)) * exp(-6.9078 * per / ((blk0 > 0 ? 150 : sustain) * sr / 1000)) + x, -4, 4));
+env0 = swelling ? min(1, env0 + swinc) : 1;
+sy = y * env0 * env0 * xs0;                     // the string itself: feeds the sympathetic bus (strings couple at the bridge, before the pickup)
+s = (y - yd) * 0.81 * env0 * env0;      // what the pickup hears
+xs0 = xs0 + 0.002 * (x0 - xs0); ts0 = ts0 + 0.002 * (t0 - ts0);
+tl0 = tl0 + 0.15 * (s - tl0);
+s = (tl0 + (s - tl0) * exp2(ts0 * 3 - 1.5)) * xs0;
+L = L + s * 0.309;
+R = R + s * 0.9511;
+lasts0 = sy;
+symacc = symacc + sy;
+
+
+// string 1
+if (p1 != last1) { n = max(1, g1 * sr / 1000); slope1 = (p1 - cur1) / n; left1 = n; last1 = p1; }
+if (left1 > 0) { cur1 = cur1 + slope1; left1 = left1 - 1; if (left1 <= 0) { cur1 = last1; } }
+// sympathetic resonance: the AVERAGE of every OTHER string's previous sample (never itself, so a
+// lone ringing string can't detune/feed itself), lowpassed then DC-blocked. DC-blocking is essential:
+// without it a steady/near-DC component would recirculate through a near-lossless string forever
+// and rail the delay line (verified by ear/measurement, not just caution).
+othersum = (symsum - lasts1) * 0.1111;
+symlp1 = symlp1 + 0.3 * (othersum - symlp1);
+symhp1 = symhp1 + 0.01 * (symlp1 - symhp1);
+coup1 = symlp1 - symhp1;
+f = mtof(cur1 + vibamt + -0.01);
+per = sr / f;
+omega = twopi * f / sr;
+// a damp (d 0→1) blocks the string for 0.4 s, then it's open again to ring along sympathetically
+if (d1 != lastd1) { lastd1 = d1; blk1 = d1 > 0 ? 0.4 * sr : 0; }
+if (blkall && d1 > 0) { blk1 = 0.4 * sr; }
+blk1 = max(0, blk1 - 1);
+bb = blk1 > 0 ? bd : b;
+look = clamp(per - atan2(bb * sin(omega), 1 - bb * cos(omega)) / omega, 2, 8190);
+if (k1 != lastk1) { lastk1 = k1; wait1 = w1 * sr / 1000; }
+if (wait1 >= 0) {
+    wait1 = wait1 - 1;
+    if (wait1 < 0) { burst1 = per; vel1 = v1; pol1 = noise() < 0 ? -1 : 1; env1 = swelling ? 0 : 1; plucked = 1; }
+}
+x = 0;
+pkr = clamp(0.000642824 * sr / per, 0.1, 0.5);    // the pick point as a fraction of the sounding string (never past the middle)
+pkn = pkr * per;                            // samples of the period spent on the "high" level
+pkx = 0;
+if (burst1 > 0) {
+    pkx = ((pol1 * (burst1 <= pkn ? 1 : -pkn / (per - pkn))) * (1 - pkr) / sin(twopi * 0.5 * pkr) + 0.1 * noise()) * vel1 * 0.32;
+    burst1 = burst1 - 1;
+}
+exlp1 = exlp1 + pickc * vel1 * (pkx - exlp1);
+x = exlp1;
+y = dl1.read(look, interp="cubic");
+yd = dl1.read(look + 0.00022958 * sr, interp="cubic");
+lp1 = (1 - bb) * y + bb * lp1;
+dl1.write(clamp((lp1 + (blk1 > 0 ? 0 : coup1 * 0.008)) * exp(-6.9078 * per / ((blk1 > 0 ? 150 : sustain) * sr / 1000)) + x, -4, 4));
+env1 = swelling ? min(1, env1 + swinc) : 1;
+sy = y * env1 * env1 * xs1;                     // the string itself: feeds the sympathetic bus (strings couple at the bridge, before the pickup)
+s = (y - yd) * 0.81 * env1 * env1;      // what the pickup hears
+xs1 = xs1 + 0.002 * (x1 - xs1); ts1 = ts1 + 0.002 * (t1 - ts1);
+tl1 = tl1 + 0.15 * (s - tl1);
+s = (tl1 + (s - tl1) * exp2(ts1 * 3 - 1.5)) * xs1;
+L = L + s * 0.4067;
+R = R + s * 0.9135;
+lasts1 = sy;
+symacc = symacc + sy;
+
+
+// string 2
+if (p2 != last2) { n = max(1, g2 * sr / 1000); slope2 = (p2 - cur2) / n; left2 = n; last2 = p2; }
+if (left2 > 0) { cur2 = cur2 + slope2; left2 = left2 - 1; if (left2 <= 0) { cur2 = last2; } }
+// sympathetic resonance: the AVERAGE of every OTHER string's previous sample (never itself, so a
+// lone ringing string can't detune/feed itself), lowpassed then DC-blocked. DC-blocking is essential:
+// without it a steady/near-DC component would recirculate through a near-lossless string forever
+// and rail the delay line (verified by ear/measurement, not just caution).
+othersum = (symsum - lasts2) * 0.1111;
+symlp2 = symlp2 + 0.3 * (othersum - symlp2);
+symhp2 = symhp2 + 0.01 * (symlp2 - symhp2);
+coup2 = symlp2 - symhp2;
+f = mtof(cur2 + vibamt + 0.005);
+per = sr / f;
+omega = twopi * f / sr;
+// a damp (d 0→1) blocks the string for 0.4 s, then it's open again to ring along sympathetically
+if (d2 != lastd2) { lastd2 = d2; blk2 = d2 > 0 ? 0.4 * sr : 0; }
+if (blkall && d2 > 0) { blk2 = 0.4 * sr; }
+blk2 = max(0, blk2 - 1);
+bb = blk2 > 0 ? bd : b;
+look = clamp(per - atan2(bb * sin(omega), 1 - bb * cos(omega)) / omega, 2, 8190);
+if (k2 != lastk2) { lastk2 = k2; wait2 = w2 * sr / 1000; }
+if (wait2 >= 0) {
+    wait2 = wait2 - 1;
+    if (wait2 < 0) { burst2 = per; vel2 = v2; pol2 = noise() < 0 ? -1 : 1; env2 = swelling ? 0 : 1; plucked = 1; }
+}
+x = 0;
+pkr = clamp(0.000481574 * sr / per, 0.1, 0.5);    // the pick point as a fraction of the sounding string (never past the middle)
+pkn = pkr * per;                            // samples of the period spent on the "high" level
+pkx = 0;
+if (burst2 > 0) {
+    pkx = ((pol2 * (burst2 <= pkn ? 1 : -pkn / (per - pkn))) * (1 - pkr) / sin(twopi * 0.5 * pkr) + 0.1 * noise()) * vel2 * 0.32;
+    burst2 = burst2 - 1;
+}
+exlp2 = exlp2 + pickc * vel2 * (pkx - exlp2);
+x = exlp2;
+y = dl2.read(look, interp="cubic");
+yd = dl2.read(look + 0.000171991 * sr, interp="cubic");
+lp2 = (1 - bb) * y + bb * lp2;
+dl2.write(clamp((lp2 + (blk2 > 0 ? 0 : coup2 * 0.008)) * exp(-6.9078 * per / ((blk2 > 0 ? 150 : sustain) * sr / 1000)) + x, -4, 4));
+env2 = swelling ? min(1, env2 + swinc) : 1;
+sy = y * env2 * env2 * xs2;                     // the string itself: feeds the sympathetic bus (strings couple at the bridge, before the pickup)
+s = (y - yd) * 0.81 * env2 * env2;      // what the pickup hears
+xs2 = xs2 + 0.002 * (x2 - xs2); ts2 = ts2 + 0.002 * (t2 - ts2);
+tl2 = tl2 + 0.15 * (s - tl2);
+s = (tl2 + (s - tl2) * exp2(ts2 * 3 - 1.5)) * xs2;
+L = L + s * 0.5;
+R = R + s * 0.866;
+lasts2 = sy;
+symacc = symacc + sy;
+
+
+// string 3
+if (p3 != last3) { n = max(1, g3 * sr / 1000); slope3 = (p3 - cur3) / n; left3 = n; last3 = p3; }
+if (left3 > 0) { cur3 = cur3 + slope3; left3 = left3 - 1; if (left3 <= 0) { cur3 = last3; } }
+// sympathetic resonance: the AVERAGE of every OTHER string's previous sample (never itself, so a
+// lone ringing string can't detune/feed itself), lowpassed then DC-blocked. DC-blocking is essential:
+// without it a steady/near-DC component would recirculate through a near-lossless string forever
+// and rail the delay line (verified by ear/measurement, not just caution).
+othersum = (symsum - lasts3) * 0.1111;
+symlp3 = symlp3 + 0.3 * (othersum - symlp3);
+symhp3 = symhp3 + 0.01 * (symlp3 - symhp3);
+coup3 = symlp3 - symhp3;
+f = mtof(cur3 + vibamt + -0.015);
+per = sr / f;
+omega = twopi * f / sr;
+// a damp (d 0→1) blocks the string for 0.4 s, then it's open again to ring along sympathetically
+if (d3 != lastd3) { lastd3 = d3; blk3 = d3 > 0 ? 0.4 * sr : 0; }
+if (blkall && d3 > 0) { blk3 = 0.4 * sr; }
+blk3 = max(0, blk3 - 1);
+bb = blk3 > 0 ? bd : b;
+look = clamp(per - atan2(bb * sin(omega), 1 - bb * cos(omega)) / omega, 2, 8190);
+if (k3 != lastk3) { lastk3 = k3; wait3 = w3 * sr / 1000; }
+if (wait3 >= 0) {
+    wait3 = wait3 - 1;
+    if (wait3 < 0) { burst3 = per; vel3 = v3; pol3 = noise() < 0 ? -1 : 1; env3 = swelling ? 0 : 1; plucked = 1; }
+}
+x = 0;
+pkr = clamp(0.000606745 * sr / per, 0.1, 0.5);    // the pick point as a fraction of the sounding string (never past the middle)
+pkn = pkr * per;                            // samples of the period spent on the "high" level
+pkx = 0;
+if (burst3 > 0) {
+    pkx = ((pol3 * (burst3 <= pkn ? 1 : -pkn / (per - pkn))) * (1 - pkr) / sin(twopi * 0.5 * pkr) + 0.1 * noise()) * vel3 * 0.32;
+    burst3 = burst3 - 1;
+}
+exlp3 = exlp3 + pickc * vel3 * (pkx - exlp3);
+x = exlp3;
+y = dl3.read(look, interp="cubic");
+yd = dl3.read(look + 0.000216695 * sr, interp="cubic");
+lp3 = (1 - bb) * y + bb * lp3;
+dl3.write(clamp((lp3 + (blk3 > 0 ? 0 : coup3 * 0.008)) * exp(-6.9078 * per / ((blk3 > 0 ? 150 : sustain) * sr / 1000)) + x, -4, 4));
+env3 = swelling ? min(1, env3 + swinc) : 1;
+sy = y * env3 * env3 * xs3;                     // the string itself: feeds the sympathetic bus (strings couple at the bridge, before the pickup)
+s = (y - yd) * 0.81 * env3 * env3;      // what the pickup hears
+xs3 = xs3 + 0.002 * (x3 - xs3); ts3 = ts3 + 0.002 * (t3 - ts3);
+tl3 = tl3 + 0.15 * (s - tl3);
+s = (tl3 + (s - tl3) * exp2(ts3 * 3 - 1.5)) * xs3;
+L = L + s * 0.5878;
+R = R + s * 0.809;
+lasts3 = sy;
+symacc = symacc + sy;
+
+
+// string 4
+if (p4 != last4) { n = max(1, g4 * sr / 1000); slope4 = (p4 - cur4) / n; left4 = n; last4 = p4; }
+if (left4 > 0) { cur4 = cur4 + slope4; left4 = left4 - 1; if (left4 <= 0) { cur4 = last4; } }
+// sympathetic resonance: the AVERAGE of every OTHER string's previous sample (never itself, so a
+// lone ringing string can't detune/feed itself), lowpassed then DC-blocked. DC-blocking is essential:
+// without it a steady/near-DC component would recirculate through a near-lossless string forever
+// and rail the delay line (verified by ear/measurement, not just caution).
+othersum = (symsum - lasts4) * 0.1111;
+symlp4 = symlp4 + 0.3 * (othersum - symlp4);
+symhp4 = symhp4 + 0.01 * (symlp4 - symhp4);
+coup4 = symlp4 - symhp4;
+f = mtof(cur4 + vibamt + 0.01);
+per = sr / f;
+omega = twopi * f / sr;
+// a damp (d 0→1) blocks the string for 0.4 s, then it's open again to ring along sympathetically
+if (d4 != lastd4) { lastd4 = d4; blk4 = d4 > 0 ? 0.4 * sr : 0; }
+if (blkall && d4 > 0) { blk4 = 0.4 * sr; }
+blk4 = max(0, blk4 - 1);
+bb = blk4 > 0 ? bd : b;
+look = clamp(per - atan2(bb * sin(omega), 1 - bb * cos(omega)) / omega, 2, 8190);
+if (k4 != lastk4) { lastk4 = k4; wait4 = w4 * sr / 1000; }
+if (wait4 >= 0) {
+    wait4 = wait4 - 1;
+    if (wait4 < 0) { burst4 = per; vel4 = v4; pol4 = noise() < 0 ? -1 : 1; env4 = swelling ? 0 : 1; plucked = 1; }
+}
+x = 0;
+pkr = clamp(0.000809908 * sr / per, 0.1, 0.5);    // the pick point as a fraction of the sounding string (never past the middle)
+pkn = pkr * per;                            // samples of the period spent on the "high" level
+pkx = 0;
+if (burst4 > 0) {
+    pkx = ((pol4 * (burst4 <= pkn ? 1 : -pkn / (per - pkn))) * (1 - pkr) / sin(twopi * 0.5 * pkr) + 0.1 * noise()) * vel4 * 0.32;
+    burst4 = burst4 - 1;
+}
+exlp4 = exlp4 + pickc * vel4 * (pkx - exlp4);
+x = exlp4;
+y = dl4.read(look, interp="cubic");
+yd = dl4.read(look + 0.000289253 * sr, interp="cubic");
+lp4 = (1 - bb) * y + bb * lp4;
+dl4.write(clamp((lp4 + (blk4 > 0 ? 0 : coup4 * 0.008)) * exp(-6.9078 * per / ((blk4 > 0 ? 150 : sustain) * sr / 1000)) + x, -4, 4));
+env4 = swelling ? min(1, env4 + swinc) : 1;
+sy = y * env4 * env4 * xs4;                     // the string itself: feeds the sympathetic bus (strings couple at the bridge, before the pickup)
+s = (y - yd) * 0.81 * env4 * env4;      // what the pickup hears
+xs4 = xs4 + 0.002 * (x4 - xs4); ts4 = ts4 + 0.002 * (t4 - ts4);
+tl4 = tl4 + 0.15 * (s - tl4);
+s = (tl4 + (s - tl4) * exp2(ts4 * 3 - 1.5)) * xs4;
+L = L + s * 0.6691;
+R = R + s * 0.7431;
+lasts4 = sy;
+symacc = symacc + sy;
+
+
+// string 5
+if (p5 != last5) { n = max(1, g5 * sr / 1000); slope5 = (p5 - cur5) / n; left5 = n; last5 = p5; }
+if (left5 > 0) { cur5 = cur5 + slope5; left5 = left5 - 1; if (left5 <= 0) { cur5 = last5; } }
+// sympathetic resonance: the AVERAGE of every OTHER string's previous sample (never itself, so a
+// lone ringing string can't detune/feed itself), lowpassed then DC-blocked. DC-blocking is essential:
+// without it a steady/near-DC component would recirculate through a near-lossless string forever
+// and rail the delay line (verified by ear/measurement, not just caution).
+othersum = (symsum - lasts5) * 0.1111;
+symlp5 = symlp5 + 0.3 * (othersum - symlp5);
+symhp5 = symhp5 + 0.01 * (symlp5 - symhp5);
+coup5 = symlp5 - symhp5;
+f = mtof(cur5 + vibamt + -0.005);
+per = sr / f;
+omega = twopi * f / sr;
+// a damp (d 0→1) blocks the string for 0.4 s, then it's open again to ring along sympathetically
+if (d5 != lastd5) { lastd5 = d5; blk5 = d5 > 0 ? 0.4 * sr : 0; }
+if (blkall && d5 > 0) { blk5 = 0.4 * sr; }
+blk5 = max(0, blk5 - 1);
+bb = blk5 > 0 ? bd : b;
+look = clamp(per - atan2(bb * sin(omega), 1 - bb * cos(omega)) / omega, 2, 8190);
+if (k5 != lastk5) { lastk5 = k5; wait5 = w5 * sr / 1000; }
+if (wait5 >= 0) {
+    wait5 = wait5 - 1;
+    if (wait5 < 0) { burst5 = per; vel5 = v5; pol5 = noise() < 0 ? -1 : 1; env5 = swelling ? 0 : 1; plucked = 1; }
+}
+x = 0;
+pkr = clamp(0.000963148 * sr / per, 0.1, 0.5);    // the pick point as a fraction of the sounding string (never past the middle)
+pkn = pkr * per;                            // samples of the period spent on the "high" level
+pkx = 0;
+if (burst5 > 0) {
+    pkx = ((pol5 * (burst5 <= pkn ? 1 : -pkn / (per - pkn))) * (1 - pkr) / sin(twopi * 0.5 * pkr) + 0.1 * noise()) * vel5 * 0.32;
+    burst5 = burst5 - 1;
+}
+exlp5 = exlp5 + pickc * vel5 * (pkx - exlp5);
+x = exlp5;
+y = dl5.read(look, interp="cubic");
+yd = dl5.read(look + 0.000343982 * sr, interp="cubic");
+lp5 = (1 - bb) * y + bb * lp5;
+dl5.write(clamp((lp5 + (blk5 > 0 ? 0 : coup5 * 0.008)) * exp(-6.9078 * per / ((blk5 > 0 ? 150 : sustain) * sr / 1000)) + x, -4, 4));
+env5 = swelling ? min(1, env5 + swinc) : 1;
+sy = y * env5 * env5 * xs5;                     // the string itself: feeds the sympathetic bus (strings couple at the bridge, before the pickup)
+s = (y - yd) * 0.81 * env5 * env5;      // what the pickup hears
+xs5 = xs5 + 0.002 * (x5 - xs5); ts5 = ts5 + 0.002 * (t5 - ts5);
+tl5 = tl5 + 0.15 * (s - tl5);
+s = (tl5 + (s - tl5) * exp2(ts5 * 3 - 1.5)) * xs5;
+L = L + s * 0.7431;
+R = R + s * 0.6691;
+lasts5 = sy;
+symacc = symacc + sy;
+
+
+// string 6
+if (p6 != last6) { n = max(1, g6 * sr / 1000); slope6 = (p6 - cur6) / n; left6 = n; last6 = p6; }
+if (left6 > 0) { cur6 = cur6 + slope6; left6 = left6 - 1; if (left6 <= 0) { cur6 = last6; } }
+// sympathetic resonance: the AVERAGE of every OTHER string's previous sample (never itself, so a
+// lone ringing string can't detune/feed itself), lowpassed then DC-blocked. DC-blocking is essential:
+// without it a steady/near-DC component would recirculate through a near-lossless string forever
+// and rail the delay line (verified by ear/measurement, not just caution).
+othersum = (symsum - lasts6) * 0.1111;
+symlp6 = symlp6 + 0.3 * (othersum - symlp6);
+symhp6 = symhp6 + 0.01 * (symlp6 - symhp6);
+coup6 = symlp6 - symhp6;
+f = mtof(cur6 + vibamt + 0.015);
+per = sr / f;
+omega = twopi * f / sr;
+// a damp (d 0→1) blocks the string for 0.4 s, then it's open again to ring along sympathetically
+if (d6 != lastd6) { lastd6 = d6; blk6 = d6 > 0 ? 0.4 * sr : 0; }
+if (blkall && d6 > 0) { blk6 = 0.4 * sr; }
+blk6 = max(0, blk6 - 1);
+bb = blk6 > 0 ? bd : b;
+look = clamp(per - atan2(bb * sin(omega), 1 - bb * cos(omega)) / omega, 2, 8190);
+if (k6 != lastk6) { lastk6 = k6; wait6 = w6 * sr / 1000; }
+if (wait6 >= 0) {
+    wait6 = wait6 - 1;
+    if (wait6 < 0) { burst6 = per; vel6 = v6; pol6 = noise() < 0 ? -1 : 1; env6 = swelling ? 0 : 1; plucked = 1; }
+}
+x = 0;
+pkr = clamp(0.001081097 * sr / per, 0.1, 0.5);    // the pick point as a fraction of the sounding string (never past the middle)
+pkn = pkr * per;                            // samples of the period spent on the "high" level
+pkx = 0;
+if (burst6 > 0) {
+    pkx = ((pol6 * (burst6 <= pkn ? 1 : -pkn / (per - pkn))) * (1 - pkr) / sin(twopi * 0.5 * pkr) + 0.1 * noise()) * vel6 * 0.32;
+    burst6 = burst6 - 1;
+}
+exlp6 = exlp6 + pickc * vel6 * (pkx - exlp6);
+x = exlp6;
+y = dl6.read(look, interp="cubic");
+yd = dl6.read(look + 0.000386106 * sr, interp="cubic");
+lp6 = (1 - bb) * y + bb * lp6;
+dl6.write(clamp((lp6 + (blk6 > 0 ? 0 : coup6 * 0.008)) * exp(-6.9078 * per / ((blk6 > 0 ? 150 : sustain) * sr / 1000)) + x, -4, 4));
+env6 = swelling ? min(1, env6 + swinc) : 1;
+sy = y * env6 * env6 * xs6;                     // the string itself: feeds the sympathetic bus (strings couple at the bridge, before the pickup)
+s = (y - yd) * 0.81 * env6 * env6;      // what the pickup hears
+xs6 = xs6 + 0.002 * (x6 - xs6); ts6 = ts6 + 0.002 * (t6 - ts6);
+tl6 = tl6 + 0.15 * (s - tl6);
+s = (tl6 + (s - tl6) * exp2(ts6 * 3 - 1.5)) * xs6;
+L = L + s * 0.809;
+R = R + s * 0.5878;
+lasts6 = sy;
+symacc = symacc + sy;
+
+
+// string 7
+if (p7 != last7) { n = max(1, g7 * sr / 1000); slope7 = (p7 - cur7) / n; left7 = n; last7 = p7; }
+if (left7 > 0) { cur7 = cur7 + slope7; left7 = left7 - 1; if (left7 <= 0) { cur7 = last7; } }
+// sympathetic resonance: the AVERAGE of every OTHER string's previous sample (never itself, so a
+// lone ringing string can't detune/feed itself), lowpassed then DC-blocked. DC-blocking is essential:
+// without it a steady/near-DC component would recirculate through a near-lossless string forever
+// and rail the delay line (verified by ear/measurement, not just caution).
+othersum = (symsum - lasts7) * 0.1111;
+symlp7 = symlp7 + 0.3 * (othersum - symlp7);
+symhp7 = symhp7 + 0.01 * (symlp7 - symhp7);
+coup7 = symlp7 - symhp7;
+f = mtof(cur7 + vibamt + -0.01);
+per = sr / f;
+omega = twopi * f / sr;
+// a damp (d 0→1) blocks the string for 0.4 s, then it's open again to ring along sympathetically
+if (d7 != lastd7) { lastd7 = d7; blk7 = d7 > 0 ? 0.4 * sr : 0; }
+if (blkall && d7 > 0) { blk7 = 0.4 * sr; }
+blk7 = max(0, blk7 - 1);
+bb = blk7 > 0 ? bd : b;
+look = clamp(per - atan2(bb * sin(omega), 1 - bb * cos(omega)) / omega, 2, 8190);
+if (k7 != lastk7) { lastk7 = k7; wait7 = w7 * sr / 1000; }
+if (wait7 >= 0) {
+    wait7 = wait7 - 1;
+    if (wait7 < 0) { burst7 = per; vel7 = v7; pol7 = noise() < 0 ? -1 : 1; env7 = swelling ? 0 : 1; plucked = 1; }
+}
+x = 0;
+pkr = clamp(0.001213491 * sr / per, 0.1, 0.5);    // the pick point as a fraction of the sounding string (never past the middle)
+pkn = pkr * per;                            // samples of the period spent on the "high" level
+pkx = 0;
+if (burst7 > 0) {
+    pkx = ((pol7 * (burst7 <= pkn ? 1 : -pkn / (per - pkn))) * (1 - pkr) / sin(twopi * 0.5 * pkr) + 0.1 * noise()) * vel7 * 0.32;
+    burst7 = burst7 - 1;
+}
+exlp7 = exlp7 + pickc * vel7 * (pkx - exlp7);
+x = exlp7;
+y = dl7.read(look, interp="cubic");
+yd = dl7.read(look + 0.00043339 * sr, interp="cubic");
+lp7 = (1 - bb) * y + bb * lp7;
+dl7.write(clamp((lp7 + (blk7 > 0 ? 0 : coup7 * 0.008)) * exp(-6.9078 * per / ((blk7 > 0 ? 150 : sustain) * sr / 1000)) + x, -4, 4));
+env7 = swelling ? min(1, env7 + swinc) : 1;
+sy = y * env7 * env7 * xs7;                     // the string itself: feeds the sympathetic bus (strings couple at the bridge, before the pickup)
+s = (y - yd) * 0.81 * env7 * env7;      // what the pickup hears
+xs7 = xs7 + 0.002 * (x7 - xs7); ts7 = ts7 + 0.002 * (t7 - ts7);
+tl7 = tl7 + 0.15 * (s - tl7);
+s = (tl7 + (s - tl7) * exp2(ts7 * 3 - 1.5)) * xs7;
+L = L + s * 0.866;
+R = R + s * 0.5;
+lasts7 = sy;
+symacc = symacc + sy;
+
+
+// string 8
+if (p8 != last8) { n = max(1, g8 * sr / 1000); slope8 = (p8 - cur8) / n; left8 = n; last8 = p8; }
+if (left8 > 0) { cur8 = cur8 + slope8; left8 = left8 - 1; if (left8 <= 0) { cur8 = last8; } }
+// sympathetic resonance: the AVERAGE of every OTHER string's previous sample (never itself, so a
+// lone ringing string can't detune/feed itself), lowpassed then DC-blocked. DC-blocking is essential:
+// without it a steady/near-DC component would recirculate through a near-lossless string forever
+// and rail the delay line (verified by ear/measurement, not just caution).
+othersum = (symsum - lasts8) * 0.1111;
+symlp8 = symlp8 + 0.3 * (othersum - symlp8);
+symhp8 = symhp8 + 0.01 * (symlp8 - symhp8);
+coup8 = symlp8 - symhp8;
+f = mtof(cur8 + vibamt + 0.005);
+per = sr / f;
+omega = twopi * f / sr;
+// a damp (d 0→1) blocks the string for 0.4 s, then it's open again to ring along sympathetically
+if (d8 != lastd8) { lastd8 = d8; blk8 = d8 > 0 ? 0.4 * sr : 0; }
+if (blkall && d8 > 0) { blk8 = 0.4 * sr; }
+blk8 = max(0, blk8 - 1);
+bb = blk8 > 0 ? bd : b;
+look = clamp(per - atan2(bb * sin(omega), 1 - bb * cos(omega)) / omega, 2, 8190);
+if (k8 != lastk8) { lastk8 = k8; wait8 = w8 * sr / 1000; }
+if (wait8 >= 0) {
+    wait8 = wait8 - 1;
+    if (wait8 < 0) { burst8 = per; vel8 = v8; pol8 = noise() < 0 ? -1 : 1; env8 = swelling ? 0 : 1; plucked = 1; }
+}
+x = 0;
+pkr = clamp(0.001362097 * sr / per, 0.1, 0.5);    // the pick point as a fraction of the sounding string (never past the middle)
+pkn = pkr * per;                            // samples of the period spent on the "high" level
+pkx = 0;
+if (burst8 > 0) {
+    pkx = ((pol8 * (burst8 <= pkn ? 1 : -pkn / (per - pkn))) * (1 - pkr) / sin(twopi * 0.5 * pkr) + 0.1 * noise()) * vel8 * 0.32;
+    burst8 = burst8 - 1;
+}
+exlp8 = exlp8 + pickc * vel8 * (pkx - exlp8);
+x = exlp8;
+y = dl8.read(look, interp="cubic");
+yd = dl8.read(look + 0.000486463 * sr, interp="cubic");
+lp8 = (1 - bb) * y + bb * lp8;
+dl8.write(clamp((lp8 + (blk8 > 0 ? 0 : coup8 * 0.008)) * exp(-6.9078 * per / ((blk8 > 0 ? 150 : sustain) * sr / 1000)) + x, -4, 4));
+env8 = swelling ? min(1, env8 + swinc) : 1;
+sy = y * env8 * env8 * xs8;                     // the string itself: feeds the sympathetic bus (strings couple at the bridge, before the pickup)
+s = (y - yd) * 0.81 * env8 * env8;      // what the pickup hears
+xs8 = xs8 + 0.002 * (x8 - xs8); ts8 = ts8 + 0.002 * (t8 - ts8);
+tl8 = tl8 + 0.15 * (s - tl8);
+s = (tl8 + (s - tl8) * exp2(ts8 * 3 - 1.5)) * xs8;
+L = L + s * 0.9135;
+R = R + s * 0.4067;
+lasts8 = sy;
+symacc = symacc + sy;
+
+
+// string 9
+if (p9 != last9) { n = max(1, g9 * sr / 1000); slope9 = (p9 - cur9) / n; left9 = n; last9 = p9; }
+if (left9 > 0) { cur9 = cur9 + slope9; left9 = left9 - 1; if (left9 <= 0) { cur9 = last9; } }
+// sympathetic resonance: the AVERAGE of every OTHER string's previous sample (never itself, so a
+// lone ringing string can't detune/feed itself), lowpassed then DC-blocked. DC-blocking is essential:
+// without it a steady/near-DC component would recirculate through a near-lossless string forever
+// and rail the delay line (verified by ear/measurement, not just caution).
+othersum = (symsum - lasts9) * 0.1111;
+symlp9 = symlp9 + 0.3 * (othersum - symlp9);
+symhp9 = symhp9 + 0.01 * (symlp9 - symhp9);
+coup9 = symlp9 - symhp9;
+f = mtof(cur9 + vibamt + -0.015);
+per = sr / f;
+omega = twopi * f / sr;
+// a damp (d 0→1) blocks the string for 0.4 s, then it's open again to ring along sympathetically
+if (d9 != lastd9) { lastd9 = d9; blk9 = d9 > 0 ? 0.4 * sr : 0; }
+if (blkall && d9 > 0) { blk9 = 0.4 * sr; }
+blk9 = max(0, blk9 - 1);
+bb = blk9 > 0 ? bd : b;
+look = clamp(per - atan2(bb * sin(omega), 1 - bb * cos(omega)) / omega, 2, 8190);
+if (k9 != lastk9) { lastk9 = k9; wait9 = w9 * sr / 1000; }
+if (wait9 >= 0) {
+    wait9 = wait9 - 1;
+    if (wait9 < 0) { burst9 = per; vel9 = v9; pol9 = noise() < 0 ? -1 : 1; env9 = swelling ? 0 : 1; plucked = 1; }
+}
+x = 0;
+pkr = clamp(0.001619816 * sr / per, 0.1, 0.5);    // the pick point as a fraction of the sounding string (never past the middle)
+pkn = pkr * per;                            // samples of the period spent on the "high" level
+pkx = 0;
+if (burst9 > 0) {
+    pkx = ((pol9 * (burst9 <= pkn ? 1 : -pkn / (per - pkn))) * (1 - pkr) / sin(twopi * 0.5 * pkr) + 0.1 * noise()) * vel9 * 0.32;
+    burst9 = burst9 - 1;
+}
+exlp9 = exlp9 + pickc * vel9 * (pkx - exlp9);
+x = exlp9;
+y = dl9.read(look, interp="cubic");
+yd = dl9.read(look + 0.000578506 * sr, interp="cubic");
+lp9 = (1 - bb) * y + bb * lp9;
+dl9.write(clamp((lp9 + (blk9 > 0 ? 0 : coup9 * 0.008)) * exp(-6.9078 * per / ((blk9 > 0 ? 150 : sustain) * sr / 1000)) + x, -4, 4));
+env9 = swelling ? min(1, env9 + swinc) : 1;
+sy = y * env9 * env9 * xs9;                     // the string itself: feeds the sympathetic bus (strings couple at the bridge, before the pickup)
+s = (y - yd) * 0.81 * env9 * env9;      // what the pickup hears
+xs9 = xs9 + 0.002 * (x9 - xs9); ts9 = ts9 + 0.002 * (t9 - ts9);
+tl9 = tl9 + 0.15 * (s - tl9);
+s = (tl9 + (s - tl9) * exp2(ts9 * 3 - 1.5)) * xs9;
+L = L + s * 0.9511;
+R = R + s * 0.309;
+lasts9 = sy;
+symacc = symacc + sy;
+
+if (plucked) { vibenv = 0; }
+symsum = symacc;
+puom = twopi * 4000 / sr;
+pual = sin(puom) / (2 * 1.5);
+puc = cos(puom);
+pub0 = (1 - puc) / 2; pub1 = 1 - puc;
+pua0 = 1 + pual; pua1 = -2 * puc; pua2 = 1 - pual;
+puxl0 = L;
+puyl0 = (pub0 * puxl0 + pub1 * puxl1 + pub0 * puxl2 - pua1 * puyl1 - pua2 * puyl2) / pua0;
+puxl2 = puxl1; puxl1 = puxl0; puyl2 = puyl1; puyl1 = puyl0; L = puyl0;
+puxr0 = R;
+puyr0 = (pub0 * puxr0 + pub1 * puxr1 + pub0 * puxr2 - pua1 * puyr1 - pua2 * puyr2) / pua0;
+puxr2 = puxr1; puxr1 = puxr0; puyr2 = puyr1; puyr1 = puyr0; R = puyr0;
+dryl = tanh(L * 0.7);
+dryr = tanh(R * 0.7);
+rin = (dryl + dryr) * 0.04;
+revsm = revsm + 0.001 * (reverb * 0.01 - revsm);
+rvlfol = wrap(rvlfol + 0.13 / sr, 0, 1);
+rvlenl = (34.0 + 1.2 * sin(rvlfol * twopi)) * sr / 1000;
+rvloopyl = rvdl.read(rvlenl, interp="cubic");
+rvlpl = rvloopyl * 0.45 + rvlpl * 0.55;
+rvhpl = rvhpl + 0.013 * (rvlpl - rvhpl);
+rvbandl = rvlpl - rvhpl;
+rvyl0 = rval0.read(71 * sr / 44100);
+rvvl0 = rvbandl + rvyl0 * 0.6;
+rval0.write(rvvl0);
+rvapl0 = rvyl0 - 0.6 * rvvl0;
+rvyl1 = rval1.read(97 * sr / 44100);
+rvvl1 = rvapl0 + rvyl1 * 0.6;
+rval1.write(rvvl1);
+rvapl1 = rvyl1 - 0.6 * rvvl1;
+rvyl2 = rval2.read(127 * sr / 44100);
+rvvl2 = rvapl1 + rvyl2 * 0.6;
+rval2.write(rvvl2);
+rvapl2 = rvyl2 - 0.6 * rvvl2;
+rvyl3 = rval3.read(157 * sr / 44100);
+rvvl3 = rvapl2 + rvyl3 * 0.6;
+rval3.write(rvvl3);
+rvapl3 = rvyl3 - 0.6 * rvvl3;
+rvyl4 = rval4.read(191 * sr / 44100);
+rvvl4 = rvapl3 + rvyl4 * 0.6;
+rval4.write(rvvl4);
+rvapl4 = rvyl4 - 0.6 * rvvl4;
+rvyl5 = rval5.read(223 * sr / 44100);
+rvvl5 = rvapl4 + rvyl5 * 0.6;
+rval5.write(rvvl5);
+rvapl5 = rvyl5 - 0.6 * rvvl5;
+rvdl.write(clamp(rin + rvapl5 * 0.85, -4, 4));
+wetl = rvapl5;
+rvlfor = wrap(rvlfor + 0.19 / sr, 0, 1);
+rvlenr = (45.0 + 1.2 * sin(rvlfor * twopi)) * sr / 1000;
+rvloopyr = rvdr.read(rvlenr, interp="cubic");
+rvlpr = rvloopyr * 0.45 + rvlpr * 0.55;
+rvhpr = rvhpr + 0.013 * (rvlpr - rvhpr);
+rvbandr = rvlpr - rvhpr;
+rvyr0 = rvar0.read(94 * sr / 44100);
+rvvr0 = rvbandr + rvyr0 * 0.6;
+rvar0.write(rvvr0);
+rvapr0 = rvyr0 - 0.6 * rvvr0;
+rvyr1 = rvar1.read(120 * sr / 44100);
+rvvr1 = rvapr0 + rvyr1 * 0.6;
+rvar1.write(rvvr1);
+rvapr1 = rvyr1 - 0.6 * rvvr1;
+rvyr2 = rvar2.read(150 * sr / 44100);
+rvvr2 = rvapr1 + rvyr2 * 0.6;
+rvar2.write(rvvr2);
+rvapr2 = rvyr2 - 0.6 * rvvr2;
+rvyr3 = rvar3.read(180 * sr / 44100);
+rvvr3 = rvapr2 + rvyr3 * 0.6;
+rvar3.write(rvvr3);
+rvapr3 = rvyr3 - 0.6 * rvvr3;
+rvyr4 = rvar4.read(214 * sr / 44100);
+rvvr4 = rvapr3 + rvyr4 * 0.6;
+rvar4.write(rvvr4);
+rvapr4 = rvyr4 - 0.6 * rvvr4;
+rvyr5 = rvar5.read(246 * sr / 44100);
+rvvr5 = rvapr4 + rvyr5 * 0.6;
+rvar5.write(rvvr5);
+rvapr5 = rvyr5 - 0.6 * rvvr5;
+rvdr.write(clamp(rin + rvapr5 * 0.85, -4, 4));
+wetr = rvapr5;
+volsm = volsm + 0.001 * (dbtoa(volume) * volpedal - volsm);
+outl = (dryl + wetl * revsm) * volsm;
+outr = (dryr + wetr * revsm) * volsm;
+dcyl = outl - dcxl + 0.995 * dcyl; dcxl = outl;
+dcyr = outr - dcxr + 0.995 * dcyr; dcxr = outr;
+out1 = tanh(dcyl);
+out2 = tanh(dcyr);

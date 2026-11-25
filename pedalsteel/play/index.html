@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<!--
+  Playable Pedal Steel. Reuses the Max for Live device's real code from github PedalSteelGuitarBench @ 5d5c720 (git rev-parse --short HEAD):
+    steel_brain.js  unchanged copy of m4l/steel_brain.js  (the player: voicing solver, bends, slides)
+    steel_neck.js   unchanged copy of m4l/steel_neck.js   (the neck display; its mgraphics calls run on a Canvas2D shim below)
+    engine.genexpr  the gen~ codebox from m4l/PedalSteel.maxpat (10 Karplus-Strong strings, pickup, amp, spring reverb)
+    engine.js       port of tests/gen_shim.js (GenExpr -> JS); worklet.js runs it in an AudioWorklet at the context's sampleRate
+    steel.js        glue: runs the Max scripts with their globals shimmed, mirrors the patch's knob wiring (scripts/build_maxpat.py)
+    test.mjs        node test.mjs: brain -> engine benchmark and E major -> legato A major check
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play the Pedal Steel</title>
+<link rel="icon" href="data:,">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { min-height: 100vh; background: #1c1c1e; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+         -webkit-font-smoothing: antialiased; color: #d4d4d4; padding: 56px 18px 40px; user-select: none; -webkit-user-select: none; }
+  .back-link { position: fixed; top: 16px; left: 20px; font-size: 14px; color: rgba(212,212,212,0.4); text-decoration: none; letter-spacing: 0.02em; z-index: 10; }
+  .back-link:hover { color: #d4d4d4; }
+  main { max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; }
+  .sub { font-size: 16px; font-weight: 300; color: #f5a000; line-height: 1.4; }
+  #start { background: #f5a000; color: #1c1c1e; font-weight: 600; font-size: 15px; padding: 10px 16px; border-radius: 4px; text-align: center; cursor: pointer; }
+  #start.ok { background: none; color: rgba(212,212,212,0.4); font-weight: 400; cursor: default; } /* keeps its space: hiding it moved the page under the first press */
+  canvas { width: 100%; aspect-ratio: 470 / 158; display: block; border-radius: 6px; touch-action: none; box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(212,212,212,0.4); margin-right: 6px; }
+  button { font: inherit; font-size: 15px; color: #d4d4d4; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
+           padding: 9px 16px; cursor: pointer; touch-action: none; }
+  button.on { background: #f5a000; border-color: #f5a000; color: #1c1c1e; }
+  .chord { min-width: 64px; font-weight: 600; }
+  .knobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 28px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 6px; padding: 14px 16px; }
+  .knobs label { display: grid; grid-template-columns: 64px 1fr 62px; align-items: center; gap: 10px; font-size: 14px; color: rgba(212,212,212,0.7); }
+  .knobs output { font-size: 12px; font-family: "SF Mono", "Fira Code", monospace; color: #f5a000; text-align: right; }
+  input[type=range] { accent-color: #f5a000; width: 100%; }
+  #kb { position: relative; display: flex; height: 120px; }
+  #kb .w { flex: 1; background: #d4d4d4; border: 1px solid #1c1c1e; border-radius: 0 0 4px 4px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;
+           font-size: 11px; color: #555; touch-action: none; position: relative; }
+  #kb .b { position: absolute; top: 0; width: 3.4%; height: 62%; background: #2c2c2e; border-radius: 0 0 3px 3px; z-index: 2; display: flex; align-items: flex-end; justify-content: center;
+           padding-bottom: 4px; font-size: 11px; color: #aaa; touch-action: none; }
+  #kb .w.on { background: #f5a000; color: #1c1c1e; } #kb .b.on { background: #f5a000; color: #1c1c1e; }
+  #kb i { font-style: normal; font-weight: 600; font-size: 13px; text-transform: uppercase; } #kb small { position: absolute; top: 4px; font-size: 10px; opacity: 0.6; }
+  #meter { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; } #meter i { display: block; height: 100%; width: 0; background: #f5a000; }
+  .note { font-size: 13px; color: rgba(212,212,212,0.45); line-height: 1.5; }
+  #err { white-space: pre-wrap; color: #ff6b5e; font: 12px "SF Mono", monospace; }
+</style>
+</head>
+<body>
+<a class="back-link" href="../">← Pedal Steel</a>
+<main>
+  <h1>Play the Pedal Steel</h1>
+  <div class="sub">The real device code, running in your browser. Hold a chord, then change to another one while still holding: the strings bend and slide.</div>
+  <div id="start">Click here (or press a key) to turn the sound on</div>
+  <canvas id="neck"></canvas>
+  <div class="row"><span class="label">Hold a chord</span><span id="chords" class="row"></span></div>
+  <div class="row"><span class="label">Mode</span><button id="m0" class="on">Chords</button><button id="m1">Strings</button>
+    <span class="note">Chords: play anything. Strings: C3–E4 white keys pick strings 10→1; C2–B2 hold the pedals (shift octave with ← →).</span></div>
+  <div class="knobs" id="knobs"></div>
+  <div id="meter"><i></i></div>
+  <div id="kb"></div>
+  <div class="note">Computer keyboard: bottom row <b>z s x d c v g b h n j m</b>, top row <b>q 2 w 3 e r 5 t 6 y 7 u i 9 o 0 p</b> (piano layout, black keys on the number row and s d g h j). ← → shift the octave.
+    <span id="midi">MIDI keyboards: Chrome or Edge only.</span></div>
+  <div id="err" hidden></div>
+</main>
+<script type="module">
+import { KNOBS, makeBrain, load } from "./steel.js";
+const $ = (s) => document.querySelector(s);
+const showErr = (m) => { $("#err").hidden = false; $("#err").textContent += m + "\n"; };
+addEventListener("error", (e) => showErr(e.message));
+addEventListener("unhandledrejection", (e) => showErr(String(e.reason)));
+const rd = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u + " " + r.status); return r.text(); });
+const [brainSrc, neckSrc, code] = await Promise.all([rd("steel_brain.js"), rd("steel_neck.js"), rd("engine.genexpr")]);
+
+// ---- Max's Task, on timers ----
+function Task(fn, ctx) {
+    const me = this; let t;
+    me.interval = 0;
+    me.schedule = (ms) => { clearTimeout(t); t = setTimeout(() => fn.call(ctx), ms); };
+    me.repeat = () => { clearInterval(t); t = setInterval(() => fn.call(ctx), me.interval); };
+    me.cancel = () => { clearTimeout(t); clearInterval(t); };
+}
+
+// ---- Audio: brain outlet 0 -> AudioWorklet (gen~ params), batched one message per tick ----
+let ctx, node, pend = [], audioP;
+function toEngine(k, v) {
+    pend.push([k, v]);
+    if (pend.length === 1) queueMicrotask(flush);
+}
+function flush() { if (node && pend.length) node.port.postMessage(pend.splice(0)); }
+function startAudio() {
+    return audioP = audioP || (async () => {
+        ctx = new AudioContext({ latencyHint: "interactive" });
+        await ctx.audioWorklet.addModule("worklet.js");
+        node = new AudioWorkletNode(ctx, "steel", { numberOfInputs: 0, outputChannelCount: [2] });
+        node.onprocessorerror = () => showErr("audio processor error");
+        node.port.onmessage = (e) => {
+            if (e.data.err) return showErr(e.data.err);
+            $("#meter i").style.width = Math.min(100, e.data.peak * 120) + "%"; $("#meter").dataset.peak = e.data.peak;
+        };
+        node.port.postMessage({ code });
+        flush();
+        node.connect(ctx.destination);
+        await ctx.resume();
+        $("#start").classList.add("ok"); $("#start").textContent = "Sound is on";
+    })().catch((e) => { audioP = null; showErr("audio: " + e); });
+}
+for (const ev of ["pointerdown", "keydown"]) addEventListener(ev, startAudio, { capture: true });
+
+// ---- Neck: steel_neck.js unchanged, its mgraphics on Canvas2D ----
+const cv = $("#neck"), c2 = cv.getContext("2d");
+let neck, raf = 0, px = 0, py = 0, fsize = 10, bold = false;
+const rgba = (r, g, b, a) => "rgba(" + Math.round(r * 255) + "," + Math.round(g * 255) + "," + Math.round(b * 255) + "," + a + ")";
+const font = () => (bold ? "bold " : "") + fsize + "px Helvetica, Arial, sans-serif";
+const mgraphics = {
+    init() {}, relative_coords: 0, autofill: 0,
+    redraw() { raf = raf || requestAnimationFrame(() => { raf = 0; c2.clearRect(0, 0, 470, 158); c2.beginPath(); neck.paint(); }); },
+    set_source_rgba(r, g, b, a) { c2.fillStyle = c2.strokeStyle = rgba(r, g, b, a); },
+    set_source(p) { c2.fillStyle = c2.strokeStyle = p; },
+    pattern_create_linear(x0, y0, x1, y1) {
+        const g = c2.createLinearGradient(x0, y0, x1, y1);
+        g.add_color_stop_rgba = (o, r, gg, b, a) => g.addColorStop(o, rgba(r, gg, b, a));
+        return g;
+    },
+    rectangle(x, y, w, h) { c2.rect(x, y, w, h); },
+    rectangle_rounded(x, y, w, h, ew, eh) { c2.roundRect(x, y, w, h, Math.min(ew, eh) / 2); },
+    ellipse(x, y, w, h) { c2.moveTo(x + w, y + h / 2); c2.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, 2 * Math.PI); },
+    move_to(x, y) { c2.moveTo(px = x, py = y); }, line_to(x, y) { c2.lineTo(px = x, py = y); },
+    stroke() { c2.stroke(); c2.beginPath(); }, fill() { c2.fill(); c2.beginPath(); },
+    set_line_width(w) { c2.lineWidth = w; },
+    select_font_face(n) { bold = /Bold/.test(n); }, set_font_size(s) { fsize = s; },
+    text_measure(s) { c2.font = font(); return [c2.measureText(s).width, fsize]; },
+    show_text(s) { c2.font = font(); c2.fillText(s, px, py); }
+};
+function fitCanvas() { // backing store at the displayed size x devicePixelRatio; drawing stays in the neck's 470x158 coordinates
+    const k = Math.max(1, Math.ceil(cv.clientWidth * devicePixelRatio / 470));
+    cv.width = 470 * k; cv.height = 158 * k; c2.setTransform(k, 0, 0, k, 0, 0);
+    mgraphics.redraw();
+}
+new ResizeObserver(fitCanvas).observe(cv);
+
+// neck outlet: bar drag turns the Bar knob (Max: route bar -> Bar dial), the rest goes to the brain
+const bar = (v) => { $("#bar").value = v; $("#bar").dispatchEvent(new Event("input")); };
+neck = load(neckSrc, { mgraphics, Task, box: { rect: [0, 0, 470, 158] }, outlet(_o, name, a, b) { if (name === "bar") bar(a); else brain[name](a, b); } });
+
+// ---- Brain ----
+const brain = makeBrain(brainSrc, Task, toEngine, (name, args) => neck[name] && neck[name](...args));
+
+// ---- Knobs ----
+const UNIT = { bar: " fr", slide: " ms", strum: " ms", swell: " ms", sustain: " ms", bendin: " %", vibrato: " %", volume: " dB" };
+const STEP = { bar: 0.05, sustain: 100, volume: 0.5 };
+for (const [id, label, lo, hi, init] of KNOBS) {
+    const l = document.createElement("label");
+    l.innerHTML = label + '<input type="range" id="' + id + '" min="' + lo + '" max="' + hi + '" step="' + (STEP[id] || 1) + '" value="' + init + '"><output></output>';
+    const inp = l.querySelector("input"), out = l.querySelector("output");
+    inp.oninput = () => { out.textContent = (+inp.value).toFixed(id === "bar" ? 1 : 0) + (UNIT[id] || ""); brain.setKnob(id, +inp.value); };
+    out.textContent = init + (UNIT[id] || "");
+    $("#knobs").append(l);
+}
+$("#m0").onclick = $("#m1").onclick = (e) => { const m = e.target.id === "m1" ? 1 : 0; brain.mode(m); $("#m0").classList.toggle("on", !m); $("#m1").classList.toggle("on", !!m); };
+
+// ---- Neck mouse: strings and bar by the unchanged neck handlers; pedals are click-to-latch (the device overlays toggles on them) ----
+const latched = {};
+const where = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * 470 / r.width, (e.clientY - r.top) * 158 / r.height]; };
+cv.onpointerdown = (e) => {
+    cv.setPointerCapture(e.pointerId);
+    const [x, y] = where(e), pr = neck.pedalRects(neck.neckGeom());
+    for (const n in pr) if (x >= pr[n][0] && x <= pr[n][0] + pr[n][2] && y >= pr[n][1] && y <= pr[n][1] + pr[n][3]) { latched[n] = !latched[n]; return brain.pedal(n, latched[n] ? 1 : 0); }
+    neck.onclick(x, y, 1);
+};
+cv.onpointermove = (e) => { if (e.buttons) neck.ondrag(...where(e), 1); };
+cv.onpointerup = (e) => neck.ondrag(...where(e), 0);
+
+// ---- Playing: one press/release path for computer keys, on-screen keys, chord buttons and MIDI ----
+let base = 48; // C3 on the bottom row
+const KEYS = "zsxdcvgbhnjm" + "q2w3er5t6y7ui9o0p", codeOf = (ch) => (/\d/.test(ch) ? "Digit" + ch : "Key" + ch.toUpperCase());
+const held = new Map(); // source id -> midi note
+const kbEls = [];
+const press = (id, n) => { if (held.has(id)) return; held.set(id, n); brain.note(n, 100); kbEls.forEach((el, i) => { if (base + i === n) el.classList.add("on"); }); };
+const release = (id) => { const n = held.get(id); if (n === undefined) return; held.delete(id); brain.noteoff(n); kbEls.forEach((el, i) => { if (base + i === n && ![...held.values()].includes(n)) el.classList.remove("on"); }); };
+const releaseAll = () => { for (const id of [...held.keys()]) release(id); chord([]); };
+addEventListener("blur", releaseAll);
+
+// on-screen keyboard (29 semitones from base), labelled with the computer key
+const BLACK = [1, 3, 6, 8, 10];
+let whites = 0;
+for (let i = 0; i < KEYS.length; i++) { if (!BLACK.includes(i % 12)) whites++; }
+let wi = 0;
+for (let i = 0; i < KEYS.length; i++) {
+    const el = document.createElement("div"), black = BLACK.includes(i % 12);
+    el.className = black ? "b" : "w";
+    if (black) el.style.left = "calc(" + wi + " * 100% / " + whites + " - 1.7%)"; else wi++;
+    el.innerHTML = (black ? "" : "<small></small>") + "<i>" + KEYS[i] + "</i>";
+    const id = "ui" + i;
+    el.onpointerdown = (e) => { el.releasePointerCapture(e.pointerId); press(id, base + i); };
+    el.onpointerenter = (e) => { if (e.buttons & 1) press(id, base + i); };
+    el.onpointerup = el.onpointerleave = el.onpointercancel = () => release(id);
+    kbEls.push(el); $("#kb").append(el);
+}
+const relabel = () => { $("#kb").querySelectorAll(".w small").forEach((s, k) => { const n = base + [0, 2, 4, 5, 7, 9, 11][k % 7] + 12 * Math.floor(k / 7); s.textContent = k % 7 === 0 ? "C" + (Math.floor(n / 12) - 2) : ""; }); };
+relabel();
+
+addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+    if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
+        if (e.target.tagName === "INPUT") return;
+        base = Math.max(24, Math.min(72, base + (e.code === "ArrowRight" ? 12 : -12))); relabel(); return e.preventDefault();
+    }
+    const i = KEYS.split("").findIndex((ch) => codeOf(ch) === e.code);
+    if (i >= 0) press(e.code, base + i);
+});
+addEventListener("keyup", (e) => release(e.code));
+
+// chord buttons: hold to sound; slide or switch while held and the new chord is played legato
+const CHORDS = { E: [59, 64, 68], A: [61, 64, 69], B: [59, 63, 66], B7: [59, 63, 66, 69], "C#m": [61, 64, 68], "F#m": [61, 66, 69], G: [62, 67, 71], D: [62, 66, 69] };
+let cur = [], curBtn;
+function chord(notes, btn) { // new notes first, then lift the ones that left; shared notes stay held
+    notes.filter((n) => !cur.includes(n)).forEach((n) => brain.note(n, 100));
+    cur.filter((n) => !notes.includes(n)).forEach((n) => brain.noteoff(n));
+    cur = notes; curBtn && curBtn.classList.remove("on"); (curBtn = btn) && btn.classList.add("on");
+}
+for (const name in CHORDS) {
+    const b = document.createElement("button");
+    b.className = "chord"; b.textContent = name;
+    b.onpointerdown = (e) => { b.releasePointerCapture(e.pointerId); chord(CHORDS[name], b); };
+    b.onpointerenter = () => { if (cur.length) chord(CHORDS[name], b); }; // cur empties on any pointerup
+    $("#chords").append(b);
+}
+addEventListener("pointerup", () => chord([]));
+addEventListener("pointercancel", () => chord([]));
+
+// Web MIDI (Chrome/Edge): notes, pitch bend, CC 1/11/64 (and the rest the brain knows), channel pressure; chan first, like midiparse
+function midi(e) {
+    const [s, d1, d2 = 0] = e.data, t = s & 0xf0;
+    brain.chan((s & 15) + 1);
+    if (t === 0x90 && d2) brain.note(d1, d2); else if (t === 0x80 || t === 0x90) brain.noteoff(d1);
+    else if (t === 0xb0) brain.cc(d1, d2);
+    else if (t === 0xe0) brain.bend(((d2 << 7 | d1) - 8192) / 8192);
+    else if (t === 0xd0) brain.touch(d1);
+}
+if (navigator.requestMIDIAccess) navigator.requestMIDIAccess().then((a) => {
+    const hook = () => { const names = []; for (const i of a.inputs.values()) { i.onmidimessage = midi; names.push(i.name); } $("#midi").textContent = names.length ? "MIDI in: " + names.join(", ") : "MIDI: no keyboard found."; };
+    hook(); a.onstatechange = hook;
+}).catch(() => {});
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedal Steel - an E9 pedal steel for Ableton Live</title>
+<style>
+  :root { color-scheme: dark; }
+  body { background: #1c1c1e; color: #d4d4d4; font-family: "Times New Roman", Times, serif; font-size: 18px; margin: 8px; -webkit-font-smoothing: antialiased; }
+  a { color: #f5a000; } a:visited { color: #d08a00; } a:hover { color: #ffc04d; }
+  table.page { table-layout: fixed; width: 100%; max-width: 1100px; margin: 0 auto; background: #232325; border: 1px solid rgba(255,255,255,0.12); }
+  table.page td { padding: 10px 14px; }
+  table.devices { width: 100%; border-collapse: collapse; border: 1px solid rgba(255,255,255,0.08); }
+  table.devices td { padding: 10px; border: 1px solid rgba(255,255,255,0.08); }
+  table.grid { border-collapse: collapse; }
+  table.grid td, table.grid th { padding: 6px 10px; border: 1px solid rgba(255,255,255,0.12); text-align: left; vertical-align: top; }
+  img { max-width: 100%; height: auto; border: 0; }
+  table.devices img { display: block; margin: 0 auto; border-radius: 4px; }
+  audio { display: block; width: 100%; margin-top: 12px; }
+  h1 { font-size: 40px; margin: 0 0 4px; }
+  h2 { font-size: 26px; margin: 0 0 8px; }
+  h3 { font-size: 22px; margin: 0 0 6px; color: #f5a000; }
+  hr { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 12px 0; }
+  code { font-family: "Courier New", Courier, monospace; font-size: 16px; color: #fff; }
+  .btn { display: inline-block; background: rgba(255,255,255,0.05); color: #d4d4d4 !important; text-decoration: none;
+         border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 6px 16px; font-size: 16px; }
+  .btn:hover { border-color: #f5a000; }
+  .btn.play { background: #f5a000; border-color: #f5a000; color: #1c1c1e !important; }
+  .cap { font-size: 15px; color: rgba(212,212,212,0.6); margin: 4px 0 0; }
+  @media (max-width: 640px) {
+    h1 { font-size: 32px; }
+    table.grid { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<table class="page" cellpadding="0" cellspacing="0" border="0">
+<tr><td>
+
+<a href="/">&larr; michaelgarbus.com</a>
+<hr>
+
+<h1>Pedal Steel</h1>
+<p><i>A 10-string E9 pedal steel for Ableton Live that you can play without ever having touched one.</i></p>
+
+<p>Play chords on a keyboard and it voices them the way a steel player would: one bar position plus pedals and knee levers.
+Change chords legato and the strings <b>bend</b> (pedals) or <b>slide</b> (bar) into the new chord instead of being picked again.</p>
+<p>Three Max for Live devices share the same player: <a href="#pedalsteel">PedalSteel</a> synthesizes the strings,
+<a href="#samplesteel">SampleSteel</a> plays any sample you drop in, and <a href="#inputsteel">InputSteel</a> turns the audio on a track into the steel.</p>
+
+<p><a class="btn play" href="play/">Play it in your browser</a> &nbsp; <a class="btn" href="https://github.com/mgarbvs/PedalSteelGuitarBench">View on GitHub</a></p>
+<p>Requires Ableton Live Suite with Max for Live. Copy the <code>m4l/</code> folder somewhere (the <code>.js</code> files must stay next to the <code>.amxd</code> files) and drag a device onto a track.</p>
+<hr>
+
+<h2>The devices</h2>
+<p>Jump to: <a href="#pedalsteel">PedalSteel</a> | <a href="#samplesteel">SampleSteel</a> | <a href="#inputsteel">InputSteel</a> | <a href="#push">Push 3</a> | <a href="#playing">Playing</a> | <a href="#how">How it works</a></p>
+<p>Each demo plays the same phrase: E major, then A major held legato (a pedal bend), then a slide up to C. All three were rendered from the devices' own code.</p>
+<table class="devices" cellpadding="10" cellspacing="0" border="1">
+<tr><td valign="top">
+<a name="pedalsteel"></a><h3>PedalSteel</h3>
+<a href="assets/pedalsteel.png"><img src="assets/pedalsteel.png" width="744" height="190" alt="PedalSteel Max for Live device: neck, bar, pedal board, Play and Sound knobs"></a>
+<p>The instrument. Ten Karplus-Strong strings that can be retuned while they ring, a single-coil pickup, a clean amp and a spring reverb.
+Bend In picks some chords unpedaled and presses the pedals about 90 ms after the strum, for the steel's &ldquo;cry&rdquo;.</p>
+<a href="assets/pedalsteel-pedals.png"><img src="assets/pedalsteel-pedals.png" width="744" height="190" alt="The bar at fret 5 with pedal A and knee lever LKL latched; the strings they raise are highlighted" loading="lazy"></a>
+<p class="cap">Click a pedal on the display to latch it. Outlined: pressed by the voicing for this chord. Solid: latched by you.</p>
+<audio controls preload="none" src="assets/pedalsteel-demo.mp3"></audio>
+</td></tr>
+<tr><td valign="top">
+<a name="samplesteel"></a><h3>SampleSteel</h3>
+<a href="assets/samplesteel.png"><img src="assets/samplesteel.png" width="948" height="190" alt="SampleSteel: the PedalSteel controls plus a sample card with the waveform and loop section" loading="lazy"></a>
+<p>Any sound as a pedal steel. The same player, with the ten strings replaced by ten voices playing a sample you drop in.
+Set Root to the sample's note; held notes loop the Start&ndash;End section with an equal-power crossfade, so they sustain and bend as long as you hold them.
+Turn Loop off for plucked or struck sounds.</p>
+<audio controls preload="none" src="assets/samplesteel-demo.mp3"></audio>
+<p class="cap">The sample is a synthetic bowed tone at C3, the one in the screenshot.</p>
+</td></tr>
+<tr><td valign="top">
+<a name="inputsteel"></a><h3>InputSteel</h3>
+<a href="assets/inputsteel.png"><img src="assets/inputsteel.png" width="948" height="190" alt="InputSteel: the PedalSteel controls plus MIDI From and Dry" loading="lazy"></a>
+<p>Your instrument as a pedal steel. An audio effect: sing or play one note into the track, hold chords on a keyboard (picked in MIDI From),
+and each of the ten voices pitch-shifts your sound to its string's note, so it bends and slides into the chords. Dry mixes the untouched input back in.</p>
+<audio controls preload="none" src="assets/inputsteel-demo.mp3"></audio>
+<p class="cap">The input is a synthetic sung &ldquo;ah&rdquo; held on A3. In Live, Max's <code>fzero~</code> tracks its pitch; here the render is given the true pitch.</p>
+</td></tr>
+<tr><td valign="top">
+<a name="push"></a><h3>On Push 3</h3>
+<a href="assets/pushview.png"><img src="assets/pushview.png" width="960" height="370" alt="The Push 3 screen's Play, Pedals and Sample pages" loading="lazy"></a>
+<p>On Push the encoders page through Play, Sound and Pedals (SampleSteel adds Sample). The screen is drawn in Live 13's flat style:
+<b>Play</b> shows the neck with the ringing strings lit, <b>Pedals</b> shows one pedal per encoder with the notes it changes and what the ten strings sound now,
+and <b>Sample</b> shows the waveform with the loop section lit.</p>
+</td></tr>
+</table>
+<hr>
+
+<a name="playing"></a><h2>Playing</h2>
+<table class="grid" cellspacing="0" border="1">
+<tr><th></th><th>Chords mode (default)</th><th>Strings mode (the real instrument)</th></tr>
+<tr><td>Keys</td><td>Any notes or chords. Out-of-range notes fold into the steel's range.</td><td>White keys C3&ndash;E4 pick strings 10&rarr;1.</td></tr>
+<tr><td>Pedals</td><td>Chosen automatically; click one on the display to latch it.</td><td>White keys C2&ndash;B2 hold A, B, C, LKL, LKR, RKL, RKR.</td></tr>
+<tr><td>Bar</td><td>Moves by itself; the Bar knob or dragging the neck slides it.</td><td>The Bar knob or dragging the neck.</td></tr>
+<tr><td>Legato</td><td>Hold notes into the next chord to bend and slide.</td><td>&mdash;</td></tr>
+</table>
+<p>In both modes pitch bend slides the bar &plusmn;2 frets, the mod wheel adds vibrato, CC 64 sustains and CC 11 is the volume pedal.
+With <b>MPE</b> (Push 3, Seaboard, Linnstrument) each note's pitch bend bends just its string, pressure swells it and slide makes it brighter or darker.</p>
+<hr>
+
+<a name="how"></a><h2>How it works</h2>
+<ul>
+<li><b>Real E9 tuning.</b> Ten strings (F#4 D#4 G#4 E4 B3 G#3 F#3 E3 D3 B2) with the standard A/B/C pedals and four knee levers.</li>
+<li><b>Voicing like a player.</b> Every chord is scored across 23 bar positions &times; 96 pedal combinations a player can physically press.
+The score prefers the melody on top, compact grips, few pedals, small bar moves and, above all, keeping ringing strings ringing.</li>
+<li><b>Pitch that moves while a string rings.</b> Each string is a delay line one period long; its length follows a pitch ramp, so a pedal or bar move
+stretches the ringing string instead of starting a new note. Every string stays within &plusmn;1 cent of its target.</li>
+<li><b>The rest of the steel.</b> A pick position and a pickup that comb-filter each string, sympathetic resonance between strings,
+1 cent of cabinet drop per raise pedal, a bar vibrato that fades in after the pick, and the amp's spring reverb.</li>
+</ul>
+<p>The player is <code>steel_brain.js</code>, the sound is a gen~ codebox, and the <a href="play/">browser version</a> runs both unchanged.</p>
+
+<hr>
+<p><a href="/">&larr; michaelgarbus.com</a></p>
+
+</td></tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LatinKit - Latin percussion for Ableton Live</title>
+<style>
+  :root { color-scheme: dark; }
+  body { background: #1c1c1e; color: #d4d4d4; font-family: "Times New Roman", Times, serif; font-size: 18px; margin: 8px; -webkit-font-smoothing: antialiased; }
+  a { color: #f5a000; } a:visited { color: #d08a00; } a:hover { color: #ffc04d; }
+  table.page { table-layout: fixed; width: 100%; max-width: 1100px; margin: 0 auto; background: #232325; border: 1px solid rgba(255,255,255,0.12); }
+  table.page td { padding: 10px 14px; }
+  /* the voices table laid out as a grid, so each cell can push its player to the bottom and players in a row line up */
+  table.voices { display: block; width: 100%; border: 0; }
+  table.voices tbody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+                       border-top: 1px solid rgba(255,255,255,0.08); border-left: 1px solid rgba(255,255,255,0.08); }
+  table.voices tr { display: contents; }
+  table.voices td { display: flex; flex-direction: column; width: auto; padding: 10px;
+                    border: 0; border-right: 1px solid rgba(255,255,255,0.08); border-bottom: 1px solid rgba(255,255,255,0.08); }
+  table.voices audio { margin-top: auto; }
+  img { max-width: 100%; height: auto; border: 0; }
+  table.voices img { display: block; margin: 0 auto; border-radius: 4px; }
+  audio { display: block; width: 100%; margin-top: 12px; }
+  h1 { font-size: 40px; margin: 0 0 4px; }
+  h2 { font-size: 26px; margin: 0 0 8px; }
+  h3 { font-size: 22px; margin: 0 0 6px; color: #f5a000; }
+  hr { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 12px 0; }
+  code { font-family: "Courier New", Courier, monospace; font-size: 16px; color: #fff; }
+  .btn { display: inline-block; background: rgba(255,255,255,0.05); color: #d4d4d4 !important; text-decoration: none;
+         border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 6px 16px; font-size: 16px; }
+  .btn:hover { border-color: #f5a000; }
+  @media (max-width: 640px) {
+    h1 { font-size: 32px; }
+    /* phones: one voice per screen, swipe sideways; the next card peeks in */
+    table.voices tbody { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 85%;
+                         overflow-x: auto; scroll-snap-type: x mandatory; }
+    table.voices td { scroll-snap-align: start; }
+  }
+</style>
+</head>
+<body>
+<table class="page" cellpadding="0" cellspacing="0" border="0">
+<tr><td>
+
+<a href="/">&larr; michaelgarbus.com</a>
+<hr>
+
+<h1>LatinKit</h1>
+<p><i>Synthesized Latin percussion for Ableton Live.</i></p>
+
+<p>Twelve Latin percussion instruments synthesized in Max with modal, physical and particle models; nothing is played back from samples.</p>
+<p>A <code>make_kit.py</code> script installs every voice and a <code>Latin Kit</code> Drum Rack preset.</p>
+
+<p><a class="btn" href="https://github.com/mgarbvs/LatinKit">View on GitHub</a></p>
+<p>Requires Ableton Live Suite with Max for Live.</p>
+<hr>
+
+<h2>The voices</h2>
+<p>Jump to: <a href="#agogo">Agogo</a> | <a href="#bongo">Bongo</a> | <a href="#caxixi">Caxixi</a> | <a href="#conga">Conga</a> | <a href="#cuica">Cuica</a> | <a href="#ganza">Ganzá</a> | <a href="#guiro">Güiro</a> | <a href="#pandeiro">Pandeiro</a> | <a href="#repinique">Repinique</a> | <a href="#shaker">Shaker</a> | <a href="#surdo">Surdo</a> | <a href="#timbales">Timbales</a></p>
+<table class="voices" cellpadding="10" cellspacing="0" border="1">
+<tr>
+<td valign="top" width="50%">
+<a name="agogo"></a><h3>Agogo</h3>
+<a href="assets/agogo.png"><img src="assets/agogo.png" width="276" height="282" alt="Agogo Max for Live panel" loading="lazy"></a>
+<p>Modal agogo bell in two sizes (High, Low) with Open and Mute strokes. The strong modes are doublets, as on the real bell.</p>
+<audio controls preload="none" src="assets/agogo-demo.mp3"></audio>
+</td>
+<td valign="top" width="50%">
+<a name="bongo"></a><h3>Bongo</h3>
+<a href="assets/bongo.png"><img src="assets/bongo.png" width="276" height="282" alt="Bongo Max for Live panel" loading="lazy"></a>
+<p>Modal bongo, Macho (small) or Hembra (large), with seven hand strokes: Open, Open 3F, Slap, Heel, Tip, Rim and Flam.</p>
+<audio controls preload="none" src="assets/bongo-demo.mp3"></audio>
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<a name="caxixi"></a><h3>Caxixi</h3>
+<a href="assets/caxixi.png"><img src="assets/caxixi.png" width="276" height="282" alt="Caxixi Max for Live panel" loading="lazy"></a>
+<p>Woven-basket rattle on a PhISEM particle model, with Open and Hand strokes and an FX mode that plays a shaken phrase.</p>
+<audio controls preload="none" src="assets/caxixi-demo.mp3"></audio>
+</td>
+<td valign="top" width="50%">
+<a name="conga"></a><h3>Conga</h3>
+<a href="assets/conga.png"><img src="assets/conga.png" width="438" height="282" alt="Conga Max for Live panel" loading="lazy"></a>
+<p>Three drums (tumba, conga, quinto), each a bank of damped modes with six hand strokes. The hand damps the head, as on a real drum.</p>
+<audio controls preload="none" src="assets/conga-demo.mp3"></audio>
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<a name="cuica"></a><h3>Cuica</h3>
+<a href="assets/cuica.png"><img src="assets/cuica.png" width="330" height="282" alt="Cuica Max for Live panel" loading="lazy"></a>
+<p>Friction drum: the rub swells and fades with each stroke. Alt sets push and pull alternation, and MPE pressure keeps the rub going while held.</p>
+<audio controls preload="none" src="assets/cuica-demo.mp3"></audio>
+</td>
+<td valign="top" width="50%">
+<a name="ganza"></a><h3>Ganzá</h3>
+<a href="assets/ganza.png"><img src="assets/ganza.png" width="276" height="282" alt="Ganzá Max for Live panel" loading="lazy"></a>
+<p>Samba ganzá (a metal tube of beads) and chocalho (a frame of platinelas), each with forward and back strokes fitted to Creative Commons recordings.</p>
+<audio controls preload="none" src="assets/ganza-demo.mp3"></audio>
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<a name="guiro"></a><h3>Güiro</h3>
+<a href="assets/guiro.png"><img src="assets/guiro.png" width="276" height="282" alt="Güiro Max for Live panel" loading="lazy"></a>
+<p>Scraper: a stick across ridges sounds as a train of impacts whose rate follows the stick's speed. Also covers the samba reco-reco.</p>
+<audio controls preload="none" src="assets/guiro-demo.mp3"></audio>
+</td>
+<td valign="top" width="50%">
+<a name="pandeiro"></a><h3>Pandeiro</h3>
+<a href="assets/pandeiro.png"><img src="assets/pandeiro.png" width="276" height="282" alt="Pandeiro Max for Live panel" loading="lazy"></a>
+<p>Pandeiro (frame drum with jingles) and tamborim from one engine. Two devices: a kit version for Drum Rack pads, and PandeiroMusical, where the MIDI key sets the pitch.</p>
+<audio controls preload="none" src="assets/pandeiro-demo.mp3"></audio>
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<a name="repinique"></a><h3>Repinique</h3>
+<a href="assets/repinique.png"><img src="assets/repinique.png" width="276" height="282" alt="Repinique Max for Live panel" loading="lazy"></a>
+<p>Modal samba repinique, the small high-tuned metal-shell lead drum, with six strokes. Fitted to four CC0 Freesound recordings.</p>
+<audio controls preload="none" src="assets/repinique-demo.mp3"></audio>
+</td>
+<td valign="top" width="50%">
+<a name="shaker"></a><h3>Shaker</h3>
+<a href="assets/shaker.png"><img src="assets/shaker.png" width="276" height="282" alt="Shaker Max for Live panel" loading="lazy"></a>
+<p>Shaker family on the PhISEM particle model: maraca, cabasa, shekere, ganzá/chocalho and egg shaker, each fitted to recordings.</p>
+<audio controls preload="none" src="assets/shaker-demo.mp3"></audio>
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<a name="surdo"></a><h3>Surdo</h3>
+<a href="assets/surdo.png"><img src="assets/surdo.png" width="276" height="282" alt="Surdo Max for Live panel" loading="lazy"></a>
+<p>Modal samba surdo bass drum with Open, Mute, Rim and Finger strokes, fitted to the Latin Percussion pack's surdo takes.</p>
+<audio controls preload="none" src="assets/surdo-demo.mp3"></audio>
+</td>
+<td valign="top" width="50%">
+<a name="timbales"></a><h3>Timbales</h3>
+<a href="assets/timbales.png"><img src="assets/timbales.png" width="276" height="282" alt="Timbales Max for Live panel" loading="lazy"></a>
+<p>Timbale built around the cáscara (sticks on the shell): a head of damped modes plus a shell bank of 16 fixed-frequency modes.</p>
+<audio controls preload="none" src="assets/timbales-demo.mp3"></audio>
+</td>
+</tr>
+</table>
+
+<hr>
+<p><a href="/">&larr; michaelgarbus.com</a></p>
+
+</td></tr>
+</table>
+</body>
+</html>

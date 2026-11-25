@@ -61,19 +61,23 @@
 
   <section class="projects-strip" id="projects">
     <h2 style="font-size: 28px; margin-bottom: 16px;">Projects</h2>
-    <div class="project-row">
+    <h3 class="project-group">Games &amp; tools</h3>
+    <div class="project-grid">
       <a href="/commoditle/" class="project-card">
         <div class="project-title">Commoditle</div>
         <div class="project-desc">A daily Wordle-style game. Guess the commodity from its top producers and end-use industries.</div>
+      </a>
+      <a href="/crosswords/" class="project-card">
+        <div class="project-title">Crosswords</div>
+        <div class="project-desc">Crossword puzzles I've constructed, playable right in the browser.</div>
       </a>
       <a href="/eno/" class="project-card">
         <div class="project-title">Oblique Strategies</div>
         <div class="project-desc">A digital deck of Brian Eno's creative prompts for getting unstuck.</div>
       </a>
-      <a href="/previewrenderer/" class="project-card">
-        <div class="project-title">Ableton Preview Renderer</div>
-        <div class="project-desc">Render visual previews of Ableton Live sets for sharing and documentation.</div>
-      </a>
+    </div>
+    <h3 class="project-group">Ableton &amp; Max for Live</h3>
+    <div class="project-grid">
       <a href="/nammaxinstrument/" class="project-card">
         <div class="project-title">NAM Max for Live</div>
         <div class="project-desc">Guitar amp modeling inside Ableton Live. Loads .nam models and cabinet IRs — no VST required.</div>
@@ -82,9 +86,9 @@
         <div class="project-title">LatinKit</div>
         <div class="project-desc">Synthesized Latin percussion for Max for Live: congas, bongos, cuíca, güiro and more.</div>
       </a>
-      <a href="/crosswords/" class="project-card">
-        <div class="project-title">Crosswords</div>
-        <div class="project-desc">Crossword puzzles I've constructed, playable right in the browser.</div>
+      <a href="/previewrenderer/" class="project-card">
+        <div class="project-title">Ableton Preview Renderer</div>
+        <div class="project-desc">Render visual previews of Ableton Live sets for sharing and documentation.</div>
       </a>
     </div>
   </section>
@@ -273,7 +277,22 @@ a:hover{
   line-height: 1.5;
 }
 
-/* Desktop: break out of the body's 80ch cap so all project cards fit on one row */
+/* Grouped project grids: cards wrap into rows instead of squeezing into one */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+.project-grid .project-card { width: auto; box-sizing: border-box; }
+.project-group {
+  font-size: 18px;
+  font-weight: normal;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.04em;
+  margin: 28px 0 12px;
+}
+
+/* Desktop: break out of the body's 80ch cap so a row holds four cards */
 @media (min-width: 1000px) {
   .projects-strip {
     width: min(1200px, 100vw - 80px);
@@ -281,8 +300,6 @@ a:hover{
     left: 50%;
     transform: translateX(-50%);
   }
-  .project-row { flex-wrap: nowrap; }
-  .project-card { flex: 1 1 0; width: auto; min-width: 0; }
 }
 
 /* Mobile */
